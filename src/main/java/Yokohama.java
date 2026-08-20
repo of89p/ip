@@ -33,7 +33,11 @@ public class Yokohama {
                 for (int i = 0; i < pos; i++) {
                     System.out.printf("%d: %s\n", i+1, todo_list[i]);
                 }
-            } else {
+            } else if (lowerCaseInput.startsWith("mark")) {
+                int todo_index = Integer.parseInt(lowerCaseInput.substring(4).replaceAll("\\s", "")) - 1;
+                System.out.printf("Marked as done: \n   [X] %s \n", todo_list[todo_index]);
+            }
+            else {
                 todo_list[pos] = input;
                 pos++;
 
