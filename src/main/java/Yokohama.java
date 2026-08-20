@@ -1,3 +1,5 @@
+import java.util.Scanner;
+
 public class Yokohama {
     public static void main(String[] args) {
         final String BOT_NAME = "Yokohama";
@@ -11,7 +13,25 @@ public class Yokohama {
         System.out.println("Hello, welcome to ");
         System.out.println(banner);
 
-        System.out.println("What shall we do today?");
+        System.out.println("Enter 'exit' to leave program. Yokohama would return all inputs as is.");
+
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+
+            System.out.print("> ");
+
+            String input = scanner.nextLine();
+
+
+            if (input.equals("exit")) {
+                break;
+            }
+
+            System.out.println(input+"\n");
+        }
+
+        scanner.close();
 
         System.out.println("Bye! Hope to see you again!");
 
