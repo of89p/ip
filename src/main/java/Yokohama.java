@@ -68,6 +68,12 @@ public class Yokohama {
                 }
             } else if (lowerCaseInput.startsWith("mark")) {
                 int todo_index = Integer.parseInt(lowerCaseInput.substring(4).replaceAll("\\s", "")) - 1;
+
+                if (todo_index < 0 || todo_index + 1 > pos) {
+                    System.out.println("No such task!");
+                    continue;
+                }
+
                 Task task = todo_list[todo_index];
                 if (!task.markComplete()) {
                     System.out.println("Already marked as completed! Do you mean to unmark?");
@@ -76,6 +82,12 @@ public class Yokohama {
                 }
             } else if (lowerCaseInput.startsWith("unmark")) {
                 int todo_index = Integer.parseInt(lowerCaseInput.substring(6).replaceAll("\\s", "")) - 1;
+
+                if (todo_index < 0 || todo_index + 1 > pos) {
+                    System.out.println("No such task!");
+                    continue;
+                }
+
                 Task task = todo_list[todo_index];
                 if (!task.unmarkComplete()) {
                     System.out.println("Task is not done yet! Do you mean to mark?");
