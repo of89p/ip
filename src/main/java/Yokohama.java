@@ -1,4 +1,4 @@
-public class Duke {
+public class Yokohama {
     public static void main(String[] args) {
         final String BOT_NAME = "Yokohama";
 
