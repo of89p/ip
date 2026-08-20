@@ -18,11 +18,8 @@ public class Yokohama {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
-
             System.out.print("> ");
-
             String input = scanner.nextLine();
-
 
             if (input.equals("exit")) {
                 break;
@@ -32,7 +29,6 @@ public class Yokohama {
         }
 
         scanner.close();
-
         System.out.println("Bye! Hope to see you again!");
 
     }
