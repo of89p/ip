@@ -1,8 +1,11 @@
+import java.util.Locale;
 import java.util.Scanner;
 
 public class Yokohama {
     public static void main(String[] args) {
         final String BOT_NAME = "Yokohama";
+        String[] todo_list = new String[100];
+        int pos = 0;
 
         String banner = "__   __  ___  _  __  ___  _   _    _    __  __    _    \n"
                 + "\\ \\ / / / _ \\| |/ / / _ \\| | | |  / \\  |  \\/  |  / \\   \n"
@@ -20,12 +23,23 @@ public class Yokohama {
         while (true) {
             System.out.print("> ");
             String input = scanner.nextLine();
+            String lowerCaseInput = input.toLowerCase();
 
-            if (input.equals("exit")) {
+            if (lowerCaseInput.equals("exit")) {
                 break;
             }
 
-            System.out.println(input+"\n");
+            if (lowerCaseInput.equals("list")) {
+                for (int i = 0; i < pos; i++) {
+                    System.out.printf("%d: %s\n", i+1, todo_list[i]);
+                }
+            } else {
+                todo_list[pos] = input;
+                pos++;
+
+                System.out.printf("Added: %s\n", input);
+            }
+
         }
 
         scanner.close();
