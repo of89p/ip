@@ -1,10 +1,43 @@
 import java.util.Locale;
 import java.util.Scanner;
 
+class Task {
+    public String name;
+    private boolean done;
+
+    Task(String name) {
+        this.name = name;
+        this.done = false;
+    }
+
+    public boolean markComplete () {
+        if (this.done) {
+            return false;
+        } else {
+            done = true;
+            return true;
+        }
+    }
+
+    public boolean unmarkComplete() {
+        if (!this.done) {
+            return false;
+        } else {
+            this.done = false;
+            return true;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return this.done ? String.format("[ X ] %s", this.name) : String.format("[  ] %s", this.name);
+    }
+}
+
 public class Yokohama {
     public static void main(String[] args) {
         final String BOT_NAME = "Yokohama";
-        String[] todo_list = new String[100];
+        Task[] todo_list = new Task[100];
         int pos = 0;
 
         String banner = "__   __  ___  _  __  ___  _   _    _    __  __    _    \n"
@@ -35,10 +68,23 @@ public class Yokohama {
                 }
             } else if (lowerCaseInput.startsWith("mark")) {
                 int todo_index = Integer.parseInt(lowerCaseInput.substring(4).replaceAll("\\s", "")) - 1;
-                System.out.printf("Marked as done: \n   [X] %s \n", todo_list[todo_index]);
+                Task task = todo_list[todo_index];
+                if (!task.markComplete()) {
+                    System.out.println("Already marked as completed! Do you mean to unmark?");
+                } else {
+                    System.out.printf("Marked as done: \n   %s \n", task.toString());
+                }
+            } else if (lowerCaseInput.startsWith("unmark")) {
+                int todo_index = Integer.parseInt(lowerCaseInput.substring(6).replaceAll("\\s", "")) - 1;
+                Task task = todo_list[todo_index];
+                if (!task.unmarkComplete()) {
+                    System.out.println("Task is not done yet! Do you mean to mark?");
+                } else {
+                    System.out.printf("Unmarked done: \n   %s \n", task.toString());
+                }
             }
             else {
-                todo_list[pos] = input;
+                todo_list[pos] = new Task(input);
                 pos++;
 
                 System.out.printf("Added: %s\n", input);
