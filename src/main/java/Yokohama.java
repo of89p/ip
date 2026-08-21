@@ -34,6 +34,37 @@ class Task {
     }
 }
 
+class Deadline extends Task {
+    protected String by;
+
+    public Deadline(String description, String by) {
+        super(description);
+        this.by = by;
+    }
+
+    @Override
+    public String toString() {
+        return "[D]" + super.toString() + " (by: " + this.by + ")";
+    }
+}
+
+
+class Event extends Task {
+    protected String by;
+    protected String to;
+
+    public Event(String description, String by, String to) {
+        super(description);
+        this.by = by;
+        this.to = to;
+    }
+
+    @Override
+    public String toString() {
+        return "[D]" + super.toString() + " (by: " + this.by + ", to: " + this.to + ")";
+    }
+}
+
 public class Yokohama {
     private static boolean isValidIndex(int index, int currentSize) {
         if (index < 0 || index >= currentSize) {
@@ -122,12 +153,50 @@ public class Yokohama {
                 } catch (NumberFormatException e) {
                     System.out.println("Not a number. Please use digits.");
                 }
-            }
-            else {
-                todo_list[pos] = new Task(input);
+            } else if (command.equals("todo")) {
+                String description = input.substring(command.length()).trim();
+                todo_list[pos] = new Task(description);
                 pos++;
 
                 System.out.printf("Added: %s\n", input);
+                System.out.printf("There are now %d items in todo-list. \n", pos);
+            } else if (command.equals("deadline")) {
+                String payload = input.substring(8).trim();
+
+                String[] deadline_parts = payload.split(" /by ");
+
+                if (deadline_parts.length < 2) {
+                    System.out.println("Provide a deadline using '/by'.");
+                } else {
+                    String description = deadline_parts[0].trim();
+                    String by = deadline_parts[1].trim();
+
+                    todo_list[pos] = new Deadline(description, by);
+                    pos++;
+
+                    System.out.printf("Added: \n%s\n", todo_list[pos-1].toString());
+                    System.out.printf("There are now %d items in todo-list. \n", pos);
+                }
+            } else if (command.equals("event")) {
+                String payload = input.substring(5).trim();
+
+                int fromIndex = payload.indexOf(" /from ");
+                int toIndex = payload.indexOf(" /to ");
+
+                if (fromIndex == -1 || toIndex == -1 || fromIndex > toIndex) {
+                    System.out.println("Please provide an event using '/from' and '/to' in the correct order.");
+                } else {
+                    String description = payload.substring(0, fromIndex).trim();
+                    String from = payload.substring(fromIndex + 7, toIndex).trim();
+                    String to = payload.substring(toIndex + 5).trim();
+
+                    todo_list[pos] = new Event(description, from, to);
+                    pos++;
+
+                    System.out.printf("Added: \n%s\n", todo_list[pos-1].toString());
+                    System.out.printf("There are now %d items in todo-list. \n", pos);
+
+                }
             }
 
         }
