@@ -48,6 +48,11 @@ class Deadline extends Task {
     }
 }
 
+class YokohamaException extends Exception {
+    public YokohamaException(String message) {
+        super(message);
+    }
+}
 
 class Event extends Task {
     protected String by;
@@ -97,106 +102,122 @@ public class Yokohama {
             String input = scanner.nextLine().trim();
             String lowerCaseInput = input.toLowerCase();
 
-            if(input.isEmpty()) {
+            if (input.isEmpty()) {
                 continue;
             }
+            try {
+                String[] parts = input.split("\\s+");
+                String command = parts[0].toLowerCase();
 
-            String[] parts = input.split("\\s+");
-            String command = parts[0].toLowerCase();
-
-            if (command.equals("exit")) {
-                break;
-            }
-
-            if (command.equals("list")) {
-                for (int i = 0; i < pos; i++) {
-                    System.out.printf("%d: %s\n", i+1, todo_list[i]);
-                }
-            } else if (command.equals("mark")) {
-                if(parts.length < 2) {
-                    System.out.println("Task number not provided");
-                    continue;
+                if (command.equals("exit")) {
+                    break;
                 }
 
-                try {
-                    int todo_index = Integer.parseInt(parts[1]) - 1;
-
-                    if(isValidIndex(todo_index, pos)) {
-                        Task task = todo_list[todo_index];
-                        if (!task.markComplete()) {
-                            System.out.println("Already marked as completed! Do you mean to unmark?");
-                        } else {
-                            System.out.printf("Marked as done: \n   %s \n", task.toString());
-                        }
+                if (command.equals("list")) {
+                    for (int i = 0; i < pos; i++) {
+                        System.out.printf("%d: %s\n", i + 1, todo_list[i]);
                     }
-                } catch (NumberFormatException e) {
-                    System.out.println("Not a number. Please use digits.");
-                }
-
-            } else if (command.equals("unmark")) {
-                if(parts.length < 2) {
-                    System.out.println("Task number not provided");
-                    continue;
-                }
-
-                try {
-                    int todo_index = Integer.parseInt(parts[1]) - 1;
-
-                    if(isValidIndex(todo_index, pos)) {
-                        Task task = todo_list[todo_index];
-                        if (!task.unmarkComplete()) {
-                            System.out.println("Task is not done yet! Do you mean to mark?");
-                        } else {
-                            System.out.printf("Unmarked done: \n   %s \n", task.toString());
-                        }
+                } else if (command.equals("mark")) {
+                    if (parts.length < 2) {
+                        throw new YokohamaException("Task number not provided!");
                     }
-                } catch (NumberFormatException e) {
-                    System.out.println("Not a number. Please use digits.");
-                }
-            } else if (command.equals("todo")) {
-                String description = input.substring(command.length()).trim();
-                todo_list[pos] = new Task(description);
-                pos++;
 
-                System.out.printf("Added: %s\n", input);
-                System.out.printf("There are now %d items in todo-list. \n", pos);
-            } else if (command.equals("deadline")) {
-                String payload = input.substring(8).trim();
+                    try {
+                        int todo_index = Integer.parseInt(parts[1]) - 1;
 
-                String[] deadline_parts = payload.split(" /by ");
+                        if (isValidIndex(todo_index, pos)) {
+                            Task task = todo_list[todo_index];
+                            if (!task.markComplete()) {
+                                System.out.println("Already marked as completed! Do you mean to unmark?");
+                            } else {
+                                System.out.printf("Marked as done: \n   %s \n", task.toString());
+                            }
+                        }
+                    } catch (NumberFormatException e) {
+                        throw new YokohamaException("Enter a number!");
+                    }
 
-                if (deadline_parts.length < 2) {
-                    System.out.println("Provide a deadline using '/by'.");
-                } else {
-                    String description = deadline_parts[0].trim();
-                    String by = deadline_parts[1].trim();
+                } else if (command.equals("unmark")) {
+                    if (parts.length < 2) {
+                        throw new YokohamaException("Task number not provided!");
+                    }
 
-                    todo_list[pos] = new Deadline(description, by);
+                    try {
+                        int todo_index = Integer.parseInt(parts[1]) - 1;
+
+                        if (isValidIndex(todo_index, pos)) {
+                            Task task = todo_list[todo_index];
+                            if (!task.unmarkComplete()) {
+                                System.out.println("Task is not done yet! Do you mean to mark?");
+                            } else {
+                                System.out.printf("Unmarked done: \n   %s \n", task.toString());
+                            }
+                        }
+                    } catch (NumberFormatException e) {
+                        throw new YokohamaException("Enter a number!");
+                    }
+                } else if (command.equals("todo")) {
+                    String description = input.substring(command.length()).trim();
+
+                    if (description.isEmpty()) {
+                        throw new YokohamaException("Todo cannot be empty!");
+                    }
+
+                    todo_list[pos] = new Task(description);
                     pos++;
 
-                    System.out.printf("Added: \n%s\n", todo_list[pos-1].toString());
+                    System.out.printf("Added: %s\n", input);
                     System.out.printf("There are now %d items in todo-list. \n", pos);
-                }
-            } else if (command.equals("event")) {
-                String payload = input.substring(5).trim();
+                } else if (command.equals("deadline")) {
+                    String payload = input.substring(8).trim();
 
-                int fromIndex = payload.indexOf(" /from ");
-                int toIndex = payload.indexOf(" /to ");
+                    String[] deadline_parts = payload.split(" /by ");
 
-                if (fromIndex == -1 || toIndex == -1 || fromIndex > toIndex) {
-                    System.out.println("Please provide an event using '/from' and '/to' in the correct order.");
+                    if (deadline_parts.length < 2) {
+                        throw new YokohamaException("Provide a deadline using '/by'");
+                    } else {
+                        String description = deadline_parts[0].trim();
+                        String by = deadline_parts[1].trim();
+
+                        todo_list[pos] = new Deadline(description, by);
+                        pos++;
+
+                        System.out.printf("Added: \n%s\n", todo_list[pos - 1].toString());
+                        System.out.printf("There are now %d items in todo-list. \n", pos);
+                    }
+                } else if (command.equals("event")) {
+                    String payload = input.substring(5).trim();
+
+                    int fromIndex = payload.indexOf(" /from ");
+                    int toIndex = payload.indexOf(" /to ");
+
+                    if (fromIndex == -1 || toIndex == -1 || fromIndex > toIndex) {
+                        throw new YokohamaException("Please provide an event using '/from' and '/to' in the correct order.");
+                    } else {
+                        String description = payload.substring(0, fromIndex).trim();
+                        String from = payload.substring(fromIndex + 7, toIndex).trim();
+                        String to = payload.substring(toIndex + 5).trim();
+
+                        todo_list[pos] = new Event(description, from, to);
+                        pos++;
+
+                        System.out.printf("Added: \n%s\n", todo_list[pos - 1].toString());
+                        System.out.printf("There are now %d items in todo-list. \n", pos);
+
+                    }
                 } else {
-                    String description = payload.substring(0, fromIndex).trim();
-                    String from = payload.substring(fromIndex + 7, toIndex).trim();
-                    String to = payload.substring(toIndex + 5).trim();
-
-                    todo_list[pos] = new Event(description, from, to);
-                    pos++;
-
-                    System.out.printf("Added: \n%s\n", todo_list[pos-1].toString());
-                    System.out.printf("There are now %d items in todo-list. \n", pos);
-
+                    throw new YokohamaException("Unrecognised command!");
                 }
+            } catch (YokohamaException e) {
+                System.out.println("   |\\---/|    ");
+                System.out.println("   | x_x |    ");
+                System.out.println("    \\_^_/     ");
+                System.out.println("   /  _  \\    ");
+                System.out.println("  |  / \\  |   ");
+                System.out.println("  / |   | \\   ");
+                System.out.println(" \"\"'     '\"\"  ");
+                System.out.println("OOPS!!! " + e.getMessage()+"\n");
+//                System.out.printf("    | ERROR: \n    | %s", e.getMessage());
             }
 
         }
