@@ -1,5 +1,6 @@
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.ArrayList;
 
 class Task {
     public String name;
@@ -81,8 +82,7 @@ public class Yokohama {
 
     public static void main(String[] args) {
         final String BOT_NAME = "Yokohama";
-        Task[] todo_list = new Task[100];
-        int pos = 0;
+        ArrayList<Task> todo_list = new ArrayList<>();
 
         String banner = "__   __  ___  _  __  ___  _   _    _    __  __    _    \n"
                 + "\\ \\ / / / _ \\| |/ / / _ \\| | | |  / \\  |  \\/  |  / \\   \n"
@@ -114,8 +114,8 @@ public class Yokohama {
                 }
 
                 if (command.equals("list")) {
-                    for (int i = 0; i < pos; i++) {
-                        System.out.printf("%d: %s\n", i + 1, todo_list[i]);
+                    for (int i = 0; i < todo_list.size(); i++) {
+                        System.out.printf("%d: %s\n", i + 1, todo_list.get(i));
                     }
                 } else if (command.equals("mark")) {
                     if (parts.length < 2) {
@@ -125,8 +125,8 @@ public class Yokohama {
                     try {
                         int todo_index = Integer.parseInt(parts[1]) - 1;
 
-                        if (isValidIndex(todo_index, pos)) {
-                            Task task = todo_list[todo_index];
+                        if (isValidIndex(todo_index, todo_list.size())) {
+                            Task task = todo_list.get(todo_index);
                             if (!task.markComplete()) {
                                 System.out.println("Already marked as completed! Do you mean to unmark?");
                             } else {
@@ -145,8 +145,8 @@ public class Yokohama {
                     try {
                         int todo_index = Integer.parseInt(parts[1]) - 1;
 
-                        if (isValidIndex(todo_index, pos)) {
-                            Task task = todo_list[todo_index];
+                        if (isValidIndex(todo_index, todo_list.size())) {
+                            Task task = todo_list.get(todo_index);
                             if (!task.unmarkComplete()) {
                                 System.out.println("Task is not done yet! Do you mean to mark?");
                             } else {
@@ -163,11 +163,10 @@ public class Yokohama {
                         throw new YokohamaException("Todo cannot be empty!");
                     }
 
-                    todo_list[pos] = new Task(description);
-                    pos++;
+                    todo_list.add(new Task(description));
 
                     System.out.printf("Added: %s\n", input);
-                    System.out.printf("There are now %d items in todo-list. \n", pos);
+                    System.out.printf("There are now %d items in todo-list. \n", todo_list.size());
                 } else if (command.equals("deadline")) {
                     String payload = input.substring(8).trim();
 
@@ -179,11 +178,10 @@ public class Yokohama {
                         String description = deadline_parts[0].trim();
                         String by = deadline_parts[1].trim();
 
-                        todo_list[pos] = new Deadline(description, by);
-                        pos++;
+                        todo_list.add(new Deadline(description, by));
 
-                        System.out.printf("Added: \n%s\n", todo_list[pos - 1].toString());
-                        System.out.printf("There are now %d items in todo-list. \n", pos);
+                        System.out.printf("Added: \n%s\n", todo_list.getLast().toString());
+                        System.out.printf("There are now %d items in todo-list. \n", todo_list.size());
                     }
                 } else if (command.equals("event")) {
                     String payload = input.substring(5).trim();
@@ -198,11 +196,10 @@ public class Yokohama {
                         String from = payload.substring(fromIndex + 7, toIndex).trim();
                         String to = payload.substring(toIndex + 5).trim();
 
-                        todo_list[pos] = new Event(description, from, to);
-                        pos++;
+                        todo_list.add(new Event(description, from, to));
 
-                        System.out.printf("Added: \n%s\n", todo_list[pos - 1].toString());
-                        System.out.printf("There are now %d items in todo-list. \n", pos);
+                        System.out.printf("Added: \n%s\n", todo_list.getLast().toString());
+                        System.out.printf("There are now %d items in todo-list. \n", todo_list.size());
 
                     }
                 } else {
