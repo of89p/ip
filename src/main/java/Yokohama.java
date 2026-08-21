@@ -67,7 +67,7 @@ class Event extends Task {
 
     @Override
     public String toString() {
-        return "[D]" + super.toString() + " (by: " + this.by + ", to: " + this.to + ")";
+        return "[E]" + super.toString() + " (by: " + this.by + ", to: " + this.to + ")";
     }
 }
 
@@ -114,6 +114,13 @@ public class Yokohama {
                 }
 
                 if (command.equals("list")) {
+                    if (todo_list.isEmpty()) {
+                        System.out.println("   /\\_/\\    ");
+                        System.out.println("  ( ^_^ )   ");
+                        System.out.println("  /  _  \\   ");
+                        System.out.println(" (__(__)_)  ");
+                        System.out.println("Yay! Your list is totally empty. Time to relax!");
+                    }
                     for (int i = 0; i < todo_list.size(); i++) {
                         System.out.printf("%d: %s\n", i + 1, todo_list.get(i));
                     }
@@ -152,6 +159,25 @@ public class Yokohama {
                             } else {
                                 System.out.printf("Unmarked done: \n   %s \n", task.toString());
                             }
+                        }
+                    } catch (NumberFormatException e) {
+                        throw new YokohamaException("Enter a number!");
+                    }
+                } else if (command.equals("delete")) {
+                    if (parts.length < 2) {
+                        throw new YokohamaException("Task number not provided!");
+                    }
+
+                    try {
+                        int delete_index = Integer.parseInt(parts[1]) - 1;
+
+                        String deletedTask;
+
+                        if (isValidIndex(delete_index, todo_list.size())) {
+                            deletedTask = todo_list.getLast().toString();
+                            todo_list.remove(delete_index);
+                            System.out.printf("Deleted: \n%s\n", deletedTask);
+                            System.out.printf("There are now %d items in todo-list. \n", todo_list.size());
                         }
                     } catch (NumberFormatException e) {
                         throw new YokohamaException("Enter a number!");
