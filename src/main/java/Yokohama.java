@@ -1,12 +1,15 @@
 import javax.swing.*;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.io.File;
 import java.util.Scanner;
 import java.io.FileNotFoundException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 enum Commands {
     EXIT, LIST, MARK, UNMARK, DELETE, TODO, DEADLINE, EVENT
@@ -43,6 +46,20 @@ abstract class Todo {
         }
     }
 
+    protected static String convertFromLocalDateTime(LocalDateTime dateTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM/dd/yyyy HHmm");
+        try {
+            return dateTime.format(formatter);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    protected static String formatForUser(LocalDateTime dateTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd yyyy, h:mm a", Locale.ENGLISH);
+        return dateTime.format(formatter);
+    }
+
     abstract public String toDbString();
 
     @Override
@@ -68,21 +85,21 @@ class Task extends Todo {
 }
 
 class Deadline extends Todo {
-    protected String by;
+    protected LocalDateTime by;
 
-    public Deadline(String description, boolean done, String by) {
+    public Deadline(String description, boolean done, LocalDateTime by) {
         super(description, done);
         this.by = by;
     }
 
     @Override
     public String toDbString() {
-        return String.format("D | %s | %s | %s \n", this.done ? "1" : "0", this.name, this.by);
+        return String.format("D | %s | %s | %s \n", this.done ? "1" : "0", this.name, this.by.toString());
     }
 
     @Override
     public String toString() {
-        return "[D]" + super.toString() + " (by: " + this.by + ")";
+        return "[D]" + super.toString() + " (by: " + formatForUser(this.by) + ")";
     }
 }
 
@@ -93,10 +110,10 @@ class YokohamaException extends Exception {
 }
 
 class Event extends Todo {
-    protected String by;
-    protected String to;
+    protected LocalDateTime by;
+    protected LocalDateTime to;
 
-    public Event(String description, boolean done, String by, String to) {
+    public Event(String description, boolean done, LocalDateTime by, LocalDateTime to) {
         super(description, done);
         this.by = by;
         this.to = to;
@@ -104,12 +121,12 @@ class Event extends Todo {
 
     @Override
     public String toDbString() {
-        return String.format("E | %s | %s | %s | %s\n", this.done ? "1" : "0", this.name, this.by, this.to);
+        return String.format("E | %s | %s | %s | %s\n", this.done ? "1" : "0", this.name, this.by.toString(), this.to.toString());
     }
 
     @Override
     public String toString() {
-        return "[E]" + super.toString() + " (by: " + this.by + ", to: " + this.to + ")";
+        return "[E]" + super.toString() + " (by: " + super.convertFromLocalDateTime(this.by) + ", to: " + super.convertFromLocalDateTime(this.to) + ")";
     }
 }
 
@@ -158,13 +175,13 @@ public class Yokohama {
 
                         case D:
                             String by = dataLine[3].trim();
-                            returnArr.add(new Deadline(task, done.equals("1"), by));
+                            returnArr.add(new Deadline(task, done.equals("1"), LocalDateTime.parse(by)));
                             break;
 
                         case E:
                             String from = dataLine[3].trim();
                             String to = dataLine[4].trim();
-                            returnArr.add(new Event(task, done.equals("1"), from, to));
+                            returnArr.add(new Event(task, done.equals("1"), LocalDateTime.parse(from), LocalDateTime.parse(to)));
                             break;
                     }
                 } catch (IllegalArgumentException e) {
@@ -179,6 +196,24 @@ public class Yokohama {
         }
 
         return null;
+    }
+
+    private static LocalDateTime convertToLocalDateTime(String dateTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy HHmm");
+        try {
+            return LocalDateTime.parse(dateTime, formatter);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    private static String formatToReadable (LocalDateTime dateTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy HHmm");
+        try {
+            return dateTime.format(formatter);
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     public static void main(String[] args) {
@@ -325,9 +360,16 @@ public class Yokohama {
                         } else {
                             String description = deadline_parts[0].trim();
                             String by = deadline_parts[1].trim();
-                            todo_list.add(new Deadline(description, false, by));
-                            System.out.printf("Added: \n%s\n", todo_list.getLast().toString());
-                            System.out.printf("There are now %d items in todo-list. \n", todo_list.size());
+
+                            try {
+                                LocalDateTime byConverted = convertToLocalDateTime(by);
+
+                                todo_list.add(new Deadline(description, false, byConverted));
+                                System.out.printf("Added: \n%s\n", todo_list.getLast().toString());
+                                System.out.printf("There are now %d items in todo-list. \n", todo_list.size());
+                            } catch (Exception e) {
+                                throw new YokohamaException(e.getMessage());
+                            }
                         }
                         break;
 
@@ -342,9 +384,17 @@ public class Yokohama {
                             String description = eventPayload.substring(0, fromIndex).trim();
                             String from = eventPayload.substring(fromIndex + 7, toIndex).trim();
                             String to = eventPayload.substring(toIndex + 5).trim();
-                            todo_list.add(new Event(description, false, from, to));
-                            System.out.printf("Added: \n%s\n", todo_list.getLast().toString());
-                            System.out.printf("There are now %d items in todo-list. \n", todo_list.size());
+
+                            try {
+                                LocalDateTime fromConverted = convertToLocalDateTime(from);
+                                LocalDateTime toConverted = convertToLocalDateTime(to);
+                                todo_list.add(new Event(description, false, fromConverted, toConverted));
+
+                                System.out.printf("Added: \n%s\n", todo_list.getLast().toString());
+                                System.out.printf("There are now %d items in todo-list. \n", todo_list.size());
+                            } catch (Exception e) {
+                                throw new YokohamaException(e.getMessage());
+                            }
                         }
                         break;
                 }
