@@ -77,7 +77,7 @@ class Deadline extends Todo {
 
     @Override
     public String toDbString() {
-        return String.format("T | %s | %s | %s \n", this.done ? "1" : "0", this.name, this.by);
+        return String.format("D | %s | %s | %s \n", this.done ? "1" : "0", this.name, this.by);
     }
 
     @Override
@@ -104,7 +104,7 @@ class Event extends Todo {
 
     @Override
     public String toDbString() {
-        return String.format("T | %s | %s | %s | %s\n", this.done ? "1" : "0", this.name, this.by, this.to);
+        return String.format("E | %s | %s | %s | %s\n", this.done ? "1" : "0", this.name, this.by, this.to);
     }
 
     @Override
