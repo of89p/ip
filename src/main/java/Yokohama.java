@@ -16,9 +16,9 @@ enum TaskType {
     T, D, E
 }
 
-class Todo {
+abstract class Todo {
     public String name;
-    private boolean done;
+    protected boolean done;
 
     Todo(String name, boolean done) {
         this.name = name;
@@ -43,6 +43,8 @@ class Todo {
         }
     }
 
+    abstract public String toDbString();
+
     @Override
     public String toString() {
         return this.done ? String.format("[ X ] %s", this.name) : String.format("[  ] %s", this.name);
@@ -52,6 +54,11 @@ class Todo {
 class Task extends Todo {
     public Task(String description, boolean done) {
         super(description, done);
+    }
+
+    @Override
+    public String toDbString() {
+        return String.format("T | %s | %s\n", this.done ? "1" : "0", this.name);
     }
 
     @Override
@@ -66,6 +73,11 @@ class Deadline extends Todo {
     public Deadline(String description, boolean done, String by) {
         super(description, done);
         this.by = by;
+    }
+
+    @Override
+    public String toDbString() {
+        return String.format("T | %s | %s | %s \n", this.done ? "1" : "0", this.name, this.by);
     }
 
     @Override
@@ -91,6 +103,11 @@ class Event extends Todo {
     }
 
     @Override
+    public String toDbString() {
+        return String.format("T | %s | %s | %s | %s\n", this.done ? "1" : "0", this.name, this.by, this.to);
+    }
+
+    @Override
     public String toString() {
         return "[E]" + super.toString() + " (by: " + this.by + ", to: " + this.to + ")";
     }
@@ -105,8 +122,15 @@ public class Yokohama {
         return true;
     }
 
-    private static void writeToFile(String filePath, String textToAdd) throws IOException {
+    private static void writeToFile(String filePath, ArrayList<Todo> data) throws IOException {
         FileWriter fw = new FileWriter(filePath);
+
+        String textToAdd = "";
+
+        for (int i = 0; i < data.size(); i++) {
+            textToAdd += data.get(i).toDbString();
+        }
+
         fw.write(textToAdd);
         fw.close();
     }
@@ -204,6 +228,11 @@ public class Yokohama {
                 switch (command) {
                     case EXIT:
                         isRunning = false;
+                        try{
+                            writeToFile(FILEPATH, todo_list);
+                        } catch (Exception e) {
+                            throw new YokohamaException("Writing to file failed! Error: " + e.getMessage());
+                        }
                         break;
 
                     case LIST:
