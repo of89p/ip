@@ -183,15 +183,17 @@ public class Yokohama {
 
     public static void main(String[] args) {
         final String BOT_NAME = "Yokohama";
-        final String FILEPATH = "src/main/java/data/todo_data.txt";
+        final String FILEPATH = "src/main/java/todo_data.txt";
         ArrayList<Todo> todo_list = new ArrayList<>();
 
         File f = new File(FILEPATH);
 
-        try {
-             todo_list = loadFile(f);
-        } catch (Exception e) {
-            System.out.println("An error occured: " + e.getMessage());
+        if(f.exists()) {
+            try {
+                todo_list = loadFile(f);
+            } catch (Exception e) {
+                System.out.println("An error occured: " + e.getMessage());
+            }
         }
 
         String banner = "__   __  ___  _  __  ___  _   _    _    __  __    _    \n"
@@ -230,6 +232,7 @@ public class Yokohama {
                         isRunning = false;
                         try{
                             writeToFile(FILEPATH, todo_list);
+                            System.out.println("Successfully saved data.");
                         } catch (Exception e) {
                             throw new YokohamaException("Writing to file failed! Error: " + e.getMessage());
                         }
