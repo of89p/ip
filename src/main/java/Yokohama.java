@@ -111,14 +111,10 @@ public class Yokohama {
         fw.close();
     }
 
-    public static void main(String[] args) {
-        final String BOT_NAME = "Yokohama";
-        final String FILEPATH = "src/main/java/data/todo_data.txt";
-        ArrayList<Todo> todo_list = new ArrayList<>();
-
-        File f = new File(FILEPATH);
-
+    private static ArrayList<Todo> loadFile(File f) throws IOException {
         try {
+            ArrayList<Todo> returnArr = new ArrayList<>();
+
             Scanner s = new Scanner(f);
             while (s.hasNext()) {
                 String[] dataLine = s.nextLine().split("\\|+");
@@ -133,33 +129,46 @@ public class Yokohama {
 
                     switch (taskType) {
                         case T:
-                            todo_list.add(new Task(task, done.equals("1")));
+                            returnArr.add(new Task(task, done.equals("1")));
                             break;
 
                         case D:
                             String by = dataLine[3].trim();
-                            todo_list.add(new Deadline(task, done.equals("1"), by));
+                            returnArr.add(new Deadline(task, done.equals("1"), by));
                             break;
 
                         case E:
                             String from = dataLine[3].trim();
                             String to = dataLine[4].trim();
-                            todo_list.add(new Event(task, done.equals("1"), from, to));
+                            returnArr.add(new Event(task, done.equals("1"), from, to));
                             break;
                     }
-
-                    System.out.println("Successfully loaded");
                 } catch (IllegalArgumentException e) {
                     throw new YokohamaException("Database error");
                 }
             }
-        } catch (FileNotFoundException e) {
-            System.out.println("File not found");
-        } catch (YokohamaException e) {
+
+            System.out.println("Successfully loaded");
+            return returnArr;
+        } catch (Exception e) {
             System.out.println("Error: " + e);
         }
 
+        return null;
+    }
 
+    public static void main(String[] args) {
+        final String BOT_NAME = "Yokohama";
+        final String FILEPATH = "src/main/java/data/todo_data.txt";
+        ArrayList<Todo> todo_list = new ArrayList<>();
+
+        File f = new File(FILEPATH);
+
+        try {
+             todo_list = loadFile(f);
+        } catch (Exception e) {
+            System.out.println("An error occured: " + e.getMessage());
+        }
 
         String banner = "__   __  ___  _  __  ___  _   _    _    __  __    _    \n"
                 + "\\ \\ / / / _ \\| |/ / / _ \\| | | |  / \\  |  \\/  |  / \\   \n"
