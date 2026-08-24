@@ -1,18 +1,28 @@
+import javax.swing.*;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.io.File;
+import java.util.Scanner;
+import java.io.FileNotFoundException;
 
 enum Commands {
     EXIT, LIST, MARK, UNMARK, DELETE, TODO, DEADLINE, EVENT
 }
 
-class Task {
-    public String name;
-    private boolean done;
+enum TaskType {
+    T, D, E
+}
 
-    Task(String name) {
+abstract class Todo {
+    public String name;
+    protected boolean done;
+
+    Todo(String name, boolean done) {
         this.name = name;
-        this.done = false;
+        this.done = done;
     }
 
     public boolean markComplete() {
@@ -33,18 +43,41 @@ class Task {
         }
     }
 
+    abstract public String toDbString();
+
     @Override
     public String toString() {
         return this.done ? String.format("[ X ] %s", this.name) : String.format("[  ] %s", this.name);
     }
 }
 
-class Deadline extends Task {
+class Task extends Todo {
+    public Task(String description, boolean done) {
+        super(description, done);
+    }
+
+    @Override
+    public String toDbString() {
+        return String.format("T | %s | %s\n", this.done ? "1" : "0", this.name);
+    }
+
+    @Override
+    public String toString() {
+        return "[T]" + super.toString();
+    }
+}
+
+class Deadline extends Todo {
     protected String by;
 
-    public Deadline(String description, String by) {
-        super(description);
+    public Deadline(String description, boolean done, String by) {
+        super(description, done);
         this.by = by;
+    }
+
+    @Override
+    public String toDbString() {
+        return String.format("D | %s | %s | %s \n", this.done ? "1" : "0", this.name, this.by);
     }
 
     @Override
@@ -59,14 +92,19 @@ class YokohamaException extends Exception {
     }
 }
 
-class Event extends Task {
+class Event extends Todo {
     protected String by;
     protected String to;
 
-    public Event(String description, String by, String to) {
-        super(description);
+    public Event(String description, boolean done, String by, String to) {
+        super(description, done);
         this.by = by;
         this.to = to;
+    }
+
+    @Override
+    public String toDbString() {
+        return String.format("E | %s | %s | %s | %s\n", this.done ? "1" : "0", this.name, this.by, this.to);
     }
 
     @Override
@@ -84,9 +122,79 @@ public class Yokohama {
         return true;
     }
 
+    private static void writeToFile(String filePath, ArrayList<Todo> data) throws IOException {
+        FileWriter fw = new FileWriter(filePath);
+
+        String textToAdd = "";
+
+        for (int i = 0; i < data.size(); i++) {
+            textToAdd += data.get(i).toDbString();
+        }
+
+        fw.write(textToAdd);
+        fw.close();
+    }
+
+    private static ArrayList<Todo> loadFile(File f) throws IOException {
+        try {
+            ArrayList<Todo> returnArr = new ArrayList<>();
+
+            Scanner s = new Scanner(f);
+            while (s.hasNext()) {
+                String[] dataLine = s.nextLine().split("\\|+");
+                String type = dataLine[0].trim();
+                String done = dataLine[1].trim();
+                String task = dataLine[2].trim();
+
+                TaskType taskType;
+
+                try {
+                    taskType = TaskType.valueOf(type);
+
+                    switch (taskType) {
+                        case T:
+                            returnArr.add(new Task(task, done.equals("1")));
+                            break;
+
+                        case D:
+                            String by = dataLine[3].trim();
+                            returnArr.add(new Deadline(task, done.equals("1"), by));
+                            break;
+
+                        case E:
+                            String from = dataLine[3].trim();
+                            String to = dataLine[4].trim();
+                            returnArr.add(new Event(task, done.equals("1"), from, to));
+                            break;
+                    }
+                } catch (IllegalArgumentException e) {
+                    throw new YokohamaException("Database error");
+                }
+            }
+
+            System.out.println("Successfully loaded");
+            return returnArr;
+        } catch (Exception e) {
+            System.out.println("Error: " + e);
+        }
+
+        return null;
+    }
+
     public static void main(String[] args) {
         final String BOT_NAME = "Yokohama";
-        ArrayList<Task> todo_list = new ArrayList<>();
+        final String FILEPATH = "src/main/java/todo_data.txt";
+        ArrayList<Todo> todo_list = new ArrayList<>();
+
+        File f = new File(FILEPATH);
+
+        if(f.exists()) {
+            try {
+                todo_list = loadFile(f);
+            } catch (Exception e) {
+                System.out.println("An error occured: " + e.getMessage());
+            }
+        }
 
         String banner = "__   __  ___  _  __  ___  _   _    _    __  __    _    \n"
                 + "\\ \\ / / / _ \\| |/ / / _ \\| | | |  / \\  |  \\/  |  / \\   \n"
@@ -122,6 +230,12 @@ public class Yokohama {
                 switch (command) {
                     case EXIT:
                         isRunning = false;
+                        try{
+                            writeToFile(FILEPATH, todo_list);
+                            System.out.println("Successfully saved data.");
+                        } catch (Exception e) {
+                            throw new YokohamaException("Writing to file failed! Error: " + e.getMessage());
+                        }
                         break;
 
                     case LIST:
@@ -145,11 +259,11 @@ public class Yokohama {
                         try {
                             int todo_index = Integer.parseInt(parts[1]) - 1;
                             if (isValidIndex(todo_index, todo_list.size())) {
-                                Task task = todo_list.get(todo_index);
-                                if (!task.markComplete()) {
+                                Todo todo = todo_list.get(todo_index);
+                                if (!todo.markComplete()) {
                                     System.out.println("Already marked as completed! Do you mean to unmark?");
                                 } else {
-                                    System.out.printf("Marked as done: \n   %s \n", task.toString());
+                                    System.out.printf("Marked as done: \n   %s \n", todo.toString());
                                 }
                             }
                         } catch (NumberFormatException e) {
@@ -164,11 +278,11 @@ public class Yokohama {
                         try {
                             int todo_index = Integer.parseInt(parts[1]) - 1;
                             if (isValidIndex(todo_index, todo_list.size())) {
-                                Task task = todo_list.get(todo_index);
-                                if (!task.unmarkComplete()) {
+                                Todo todo = todo_list.get(todo_index);
+                                if (!todo.unmarkComplete()) {
                                     System.out.println("Task is not done yet! Do you mean to mark?");
                                 } else {
-                                    System.out.printf("Unmarked done: \n   %s \n", task.toString());
+                                    System.out.printf("Unmarked done: \n   %s \n", todo.toString());
                                 }
                             }
                         } catch (NumberFormatException e) {
@@ -198,7 +312,7 @@ public class Yokohama {
                         if (todoDescription.isEmpty()) {
                             throw new YokohamaException("Todo cannot be empty!");
                         }
-                        todo_list.add(new Task(todoDescription));
+                        todo_list.add(new Task(todoDescription, false));
                         System.out.printf("Added: %s\n", input);
                         System.out.printf("There are now %d items in todo-list. \n", todo_list.size());
                         break;
@@ -211,7 +325,7 @@ public class Yokohama {
                         } else {
                             String description = deadline_parts[0].trim();
                             String by = deadline_parts[1].trim();
-                            todo_list.add(new Deadline(description, by));
+                            todo_list.add(new Deadline(description, false, by));
                             System.out.printf("Added: \n%s\n", todo_list.getLast().toString());
                             System.out.printf("There are now %d items in todo-list. \n", todo_list.size());
                         }
@@ -228,7 +342,7 @@ public class Yokohama {
                             String description = eventPayload.substring(0, fromIndex).trim();
                             String from = eventPayload.substring(fromIndex + 7, toIndex).trim();
                             String to = eventPayload.substring(toIndex + 5).trim();
-                            todo_list.add(new Event(description, from, to));
+                            todo_list.add(new Event(description, false, from, to));
                             System.out.printf("Added: \n%s\n", todo_list.getLast().toString());
                             System.out.printf("There are now %d items in todo-list. \n", todo_list.size());
                         }
