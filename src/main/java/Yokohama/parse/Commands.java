@@ -1,5 +1,5 @@
-package Yokohama;
+package Yokohama.parse;
 
-enum Commands {
+public enum Commands {
     EXIT, LIST, MARK, UNMARK, DELETE, TODO, DEADLINE, EVENT
 }
