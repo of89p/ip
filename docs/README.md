@@ -1,4 +1,4 @@
-# Yokohama User Guide
+# Yokohama.Yokohama User Guide
 
 // Update the title above to match the actual product name
 
