@@ -2,6 +2,7 @@ package Yokohama;
 
 import Yokohama.exceptions.YokohamaException;
 import Yokohama.task.*;
+import Yokohama.utils.DateTimeHandler;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -79,24 +80,6 @@ public class Yokohama {
         return null;
     }
 
-    private static LocalDateTime convertToLocalDateTime(String dateTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy HHmm");
-        try {
-            return LocalDateTime.parse(dateTime, formatter);
-        } catch (Exception e) {
-            throw e;
-        }
-    }
-
-    private static String formatToReadable (LocalDateTime dateTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy HHmm");
-        try {
-            return dateTime.format(formatter);
-        } catch (Exception e) {
-            throw e;
-        }
-    }
-
     public static void main(String[] args) {
         final String BOT_NAME = "Yokohama";
         final String FILEPATH = "src/main/java/todo_data.txt";
@@ -142,6 +125,8 @@ public class Yokohama {
                 } catch (IllegalArgumentException e) {
                     throw new YokohamaException("Unrecognised command!");
                 }
+
+                DateTimeHandler dateTimeHandler = new DateTimeHandler();
 
                 switch (command) {
                     case EXIT:
@@ -243,7 +228,7 @@ public class Yokohama {
                             String by = deadline_parts[1].trim();
 
                             try {
-                                LocalDateTime byConverted = convertToLocalDateTime(by);
+                                LocalDateTime byConverted = dateTimeHandler.convertToLocalDateTime(by);
 
                                 todo_list.add(new Deadline(description, false, byConverted));
                                 System.out.printf("Added: \n%s\n", todo_list.getLast().toString());
@@ -267,8 +252,8 @@ public class Yokohama {
                             String to = eventPayload.substring(toIndex + 5).trim();
 
                             try {
-                                LocalDateTime fromConverted = convertToLocalDateTime(from);
-                                LocalDateTime toConverted = convertToLocalDateTime(to);
+                                LocalDateTime fromConverted = dateTimeHandler.convertToLocalDateTime(from);
+                                LocalDateTime toConverted = dateTimeHandler.convertToLocalDateTime(to);
                                 todo_list.add(new Event(description, false, fromConverted, toConverted));
 
                                 System.out.printf("Added: \n%s\n", todo_list.getLast().toString());
