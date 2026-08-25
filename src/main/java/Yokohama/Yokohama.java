@@ -1,9 +1,7 @@
 package Yokohama;
 
-import Yokohama.task.Deadline;
-import Yokohama.task.Event;
-import Yokohama.task.Task;
-import Yokohama.task.Todo;
+import Yokohama.exceptions.YokohamaException;
+import Yokohama.task.*;
 
 import java.io.FileWriter;
 import java.io.IOException;

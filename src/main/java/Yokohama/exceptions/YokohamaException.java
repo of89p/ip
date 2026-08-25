@@ -1,6 +1,6 @@
-package Yokohama;
+package Yokohama.exceptions;
 
-class YokohamaException extends Exception {
+public class YokohamaException extends Exception {
     public YokohamaException(String message) {
         super(message);
     }
