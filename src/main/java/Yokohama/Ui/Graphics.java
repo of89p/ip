@@ -1,4 +1,4 @@
-package Yokohama.graphics;
+package Yokohama.Ui;
 
 public class Graphics {
     public void printWelcomeBanner () {

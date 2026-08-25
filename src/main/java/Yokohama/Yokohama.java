@@ -1,7 +1,7 @@
 package Yokohama;
 
 import Yokohama.exceptions.YokohamaException;
-import Yokohama.graphics.Graphics;
+import Yokohama.Ui.Graphics;
 import Yokohama.parse.Commands;
 import Yokohama.task.*;
 import Yokohama.utils.DateTimeHandler;
