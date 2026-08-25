@@ -1,6 +1,7 @@
 package Yokohama;
 
 import Yokohama.exceptions.YokohamaException;
+import Yokohama.graphics.Graphics;
 import Yokohama.parse.Commands;
 import Yokohama.task.*;
 import Yokohama.utils.DateTimeHandler;
@@ -13,6 +14,8 @@ import java.util.ArrayList;
 import java.io.File;
 
 public class Yokohama {
+    static Graphics graphics = new Graphics();
+
     private static boolean isValidIndex(int index, int currentSize) {
         if (index < 0 || index >= currentSize) {
             System.out.println("No such task!");
@@ -95,15 +98,7 @@ public class Yokohama {
             }
         }
 
-        String banner = "__   __  ___  _  __  ___  _   _    _    __  __    _    \n"
-                + "\\ \\ / / / _ \\| |/ / / _ \\| | | |  / \\  |  \\/  |  / \\   \n"
-                + " \\ V / | | | | ' / | | | | |_| | / _ \\ | |\\/| | / _ \\  \n"
-                + "  | |  | |_| | . \\ | |_| |  _  |/ ___ \\| |  | |/ ___ \\ \n"
-                + "  |_|   \\___/|_|\\_\\ \\___/|_| |_/_/   \\_\\_|  |_/_/   \\_\\\n";
-
-        System.out.println("Hello, welcome to ");
-        System.out.println(banner);
-        System.out.println("Enter 'exit' to leave program. Yokohama.Yokohama would return all inputs as is.");
+        graphics.printWelcomeBanner();
 
         Scanner scanner = new Scanner(System.in);
         boolean isRunning = true;
@@ -266,14 +261,7 @@ public class Yokohama {
                 }
 
             } catch (YokohamaException e) {
-                System.out.println("   |\\---/|    ");
-                System.out.println("   | x_x |    ");
-                System.out.println("    \\_^_/     ");
-                System.out.println("   /  _  \\    ");
-                System.out.println("  |  / \\  |   ");
-                System.out.println("  / |   | \\   ");
-                System.out.println(" \"\"'     '\"\"  ");
-                System.out.println("OOPS!!! " + e.getMessage()+"\n");
+                graphics.printErrorCat(e);
             }
         }
 
