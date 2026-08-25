@@ -1,136 +1,21 @@
-import javax.swing.*;
+package Yokohama;
+
+import Yokohama.exceptions.YokohamaException;
+import Yokohama.graphics.Graphics;
+import Yokohama.parse.Commands;
+import Yokohama.task.*;
+import Yokohama.utils.DateTimeHandler;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Locale;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.io.File;
-import java.util.Scanner;
-import java.io.FileNotFoundException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-
-enum Commands {
-    EXIT, LIST, MARK, UNMARK, DELETE, TODO, DEADLINE, EVENT
-}
-
-enum TaskType {
-    T, D, E
-}
-
-abstract class Todo {
-    public String name;
-    protected boolean done;
-
-    Todo(String name, boolean done) {
-        this.name = name;
-        this.done = done;
-    }
-
-    public boolean markComplete() {
-        if (this.done) {
-            return false;
-        } else {
-            done = true;
-            return true;
-        }
-    }
-
-    public boolean unmarkComplete() {
-        if (!this.done) {
-            return false;
-        } else {
-            this.done = false;
-            return true;
-        }
-    }
-
-    protected static String convertFromLocalDateTime(LocalDateTime dateTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM/dd/yyyy HHmm");
-        try {
-            return dateTime.format(formatter);
-        } catch (Exception e) {
-            throw e;
-        }
-    }
-
-    protected static String formatForUser(LocalDateTime dateTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd yyyy, h:mm a", Locale.ENGLISH);
-        return dateTime.format(formatter);
-    }
-
-    abstract public String toDbString();
-
-    @Override
-    public String toString() {
-        return this.done ? String.format("[ X ] %s", this.name) : String.format("[  ] %s", this.name);
-    }
-}
-
-class Task extends Todo {
-    public Task(String description, boolean done) {
-        super(description, done);
-    }
-
-    @Override
-    public String toDbString() {
-        return String.format("T | %s | %s\n", this.done ? "1" : "0", this.name);
-    }
-
-    @Override
-    public String toString() {
-        return "[T]" + super.toString();
-    }
-}
-
-class Deadline extends Todo {
-    protected LocalDateTime by;
-
-    public Deadline(String description, boolean done, LocalDateTime by) {
-        super(description, done);
-        this.by = by;
-    }
-
-    @Override
-    public String toDbString() {
-        return String.format("D | %s | %s | %s \n", this.done ? "1" : "0", this.name, this.by.toString());
-    }
-
-    @Override
-    public String toString() {
-        return "[D]" + super.toString() + " (by: " + formatForUser(this.by) + ")";
-    }
-}
-
-class YokohamaException extends Exception {
-    public YokohamaException(String message) {
-        super(message);
-    }
-}
-
-class Event extends Todo {
-    protected LocalDateTime by;
-    protected LocalDateTime to;
-
-    public Event(String description, boolean done, LocalDateTime by, LocalDateTime to) {
-        super(description, done);
-        this.by = by;
-        this.to = to;
-    }
-
-    @Override
-    public String toDbString() {
-        return String.format("E | %s | %s | %s | %s\n", this.done ? "1" : "0", this.name, this.by.toString(), this.to.toString());
-    }
-
-    @Override
-    public String toString() {
-        return "[E]" + super.toString() + " (by: " + super.convertFromLocalDateTime(this.by) + ", to: " + super.convertFromLocalDateTime(this.to) + ")";
-    }
-}
 
 public class Yokohama {
+    static Graphics graphics = new Graphics();
+
     private static boolean isValidIndex(int index, int currentSize) {
         if (index < 0 || index >= currentSize) {
             System.out.println("No such task!");
@@ -198,24 +83,6 @@ public class Yokohama {
         return null;
     }
 
-    private static LocalDateTime convertToLocalDateTime(String dateTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy HHmm");
-        try {
-            return LocalDateTime.parse(dateTime, formatter);
-        } catch (Exception e) {
-            throw e;
-        }
-    }
-
-    private static String formatToReadable (LocalDateTime dateTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy HHmm");
-        try {
-            return dateTime.format(formatter);
-        } catch (Exception e) {
-            throw e;
-        }
-    }
-
     public static void main(String[] args) {
         final String BOT_NAME = "Yokohama";
         final String FILEPATH = "src/main/java/todo_data.txt";
@@ -231,15 +98,7 @@ public class Yokohama {
             }
         }
 
-        String banner = "__   __  ___  _  __  ___  _   _    _    __  __    _    \n"
-                + "\\ \\ / / / _ \\| |/ / / _ \\| | | |  / \\  |  \\/  |  / \\   \n"
-                + " \\ V / | | | | ' / | | | | |_| | / _ \\ | |\\/| | / _ \\  \n"
-                + "  | |  | |_| | . \\ | |_| |  _  |/ ___ \\| |  | |/ ___ \\ \n"
-                + "  |_|   \\___/|_|\\_\\ \\___/|_| |_/_/   \\_\\_|  |_/_/   \\_\\\n";
-
-        System.out.println("Hello, welcome to ");
-        System.out.println(banner);
-        System.out.println("Enter 'exit' to leave program. Yokohama would return all inputs as is.");
+        graphics.printWelcomeBanner();
 
         Scanner scanner = new Scanner(System.in);
         boolean isRunning = true;
@@ -261,6 +120,8 @@ public class Yokohama {
                 } catch (IllegalArgumentException e) {
                     throw new YokohamaException("Unrecognised command!");
                 }
+
+                DateTimeHandler dateTimeHandler = new DateTimeHandler();
 
                 switch (command) {
                     case EXIT:
@@ -289,7 +150,7 @@ public class Yokohama {
 
                     case MARK:
                         if (parts.length < 2) {
-                            throw new YokohamaException("Task number not provided!");
+                            throw new YokohamaException("Yokohama.task.Task number not provided!");
                         }
                         try {
                             int todo_index = Integer.parseInt(parts[1]) - 1;
@@ -308,14 +169,14 @@ public class Yokohama {
 
                     case UNMARK:
                         if (parts.length < 2) {
-                            throw new YokohamaException("Task number not provided!");
+                            throw new YokohamaException("Yokohama.task.Task number not provided!");
                         }
                         try {
                             int todo_index = Integer.parseInt(parts[1]) - 1;
                             if (isValidIndex(todo_index, todo_list.size())) {
                                 Todo todo = todo_list.get(todo_index);
                                 if (!todo.unmarkComplete()) {
-                                    System.out.println("Task is not done yet! Do you mean to mark?");
+                                    System.out.println("Yokohama.task.Task is not done yet! Do you mean to mark?");
                                 } else {
                                     System.out.printf("Unmarked done: \n   %s \n", todo.toString());
                                 }
@@ -327,7 +188,7 @@ public class Yokohama {
 
                     case DELETE:
                         if (parts.length < 2) {
-                            throw new YokohamaException("Task number not provided!");
+                            throw new YokohamaException("Yokohama.task.Task number not provided!");
                         }
                         try {
                             int delete_index = Integer.parseInt(parts[1]) - 1;
@@ -345,7 +206,7 @@ public class Yokohama {
                     case TODO:
                         String todoDescription = input.substring(parts[0].length()).trim();
                         if (todoDescription.isEmpty()) {
-                            throw new YokohamaException("Todo cannot be empty!");
+                            throw new YokohamaException("Yokohama.task.Todo cannot be empty!");
                         }
                         todo_list.add(new Task(todoDescription, false));
                         System.out.printf("Added: %s\n", input);
@@ -362,7 +223,7 @@ public class Yokohama {
                             String by = deadline_parts[1].trim();
 
                             try {
-                                LocalDateTime byConverted = convertToLocalDateTime(by);
+                                LocalDateTime byConverted = dateTimeHandler.convertToLocalDateTime(by);
 
                                 todo_list.add(new Deadline(description, false, byConverted));
                                 System.out.printf("Added: \n%s\n", todo_list.getLast().toString());
@@ -386,8 +247,8 @@ public class Yokohama {
                             String to = eventPayload.substring(toIndex + 5).trim();
 
                             try {
-                                LocalDateTime fromConverted = convertToLocalDateTime(from);
-                                LocalDateTime toConverted = convertToLocalDateTime(to);
+                                LocalDateTime fromConverted = dateTimeHandler.convertToLocalDateTime(from);
+                                LocalDateTime toConverted = dateTimeHandler.convertToLocalDateTime(to);
                                 todo_list.add(new Event(description, false, fromConverted, toConverted));
 
                                 System.out.printf("Added: \n%s\n", todo_list.getLast().toString());
@@ -400,14 +261,7 @@ public class Yokohama {
                 }
 
             } catch (YokohamaException e) {
-                System.out.println("   |\\---/|    ");
-                System.out.println("   | x_x |    ");
-                System.out.println("    \\_^_/     ");
-                System.out.println("   /  _  \\    ");
-                System.out.println("  |  / \\  |   ");
-                System.out.println("  / |   | \\   ");
-                System.out.println(" \"\"'     '\"\"  ");
-                System.out.println("OOPS!!! " + e.getMessage()+"\n");
+                graphics.printErrorCat(e);
             }
         }
 
