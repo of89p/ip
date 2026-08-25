@@ -1,7 +1,8 @@
 package Yokohama;
 
+import Yokohama.Storage.Storage;
 import Yokohama.exceptions.YokohamaException;
-import Yokohama.graphics.Graphics;
+import Yokohama.Ui.Graphics;
 import Yokohama.parse.Commands;
 import Yokohama.task.*;
 import Yokohama.utils.DateTimeHandler;
@@ -15,6 +16,7 @@ import java.io.File;
 
 public class Yokohama {
     static Graphics graphics = new Graphics();
+    static Storage storage = new Storage();
 
     private static boolean isValidIndex(int index, int currentSize) {
         if (index < 0 || index >= currentSize) {
@@ -22,65 +24,6 @@ public class Yokohama {
             return false;
         }
         return true;
-    }
-
-    private static void writeToFile(String filePath, ArrayList<Todo> data) throws IOException {
-        FileWriter fw = new FileWriter(filePath);
-
-        String textToAdd = "";
-
-        for (int i = 0; i < data.size(); i++) {
-            textToAdd += data.get(i).toDbString();
-        }
-
-        fw.write(textToAdd);
-        fw.close();
-    }
-
-    private static ArrayList<Todo> loadFile(File f) throws IOException {
-        try {
-            ArrayList<Todo> returnArr = new ArrayList<>();
-
-            Scanner s = new Scanner(f);
-            while (s.hasNext()) {
-                String[] dataLine = s.nextLine().split("\\|+");
-                String type = dataLine[0].trim();
-                String done = dataLine[1].trim();
-                String task = dataLine[2].trim();
-
-                TaskType taskType;
-
-                try {
-                    taskType = TaskType.valueOf(type);
-
-                    switch (taskType) {
-                        case T:
-                            returnArr.add(new Task(task, done.equals("1")));
-                            break;
-
-                        case D:
-                            String by = dataLine[3].trim();
-                            returnArr.add(new Deadline(task, done.equals("1"), LocalDateTime.parse(by)));
-                            break;
-
-                        case E:
-                            String from = dataLine[3].trim();
-                            String to = dataLine[4].trim();
-                            returnArr.add(new Event(task, done.equals("1"), LocalDateTime.parse(from), LocalDateTime.parse(to)));
-                            break;
-                    }
-                } catch (IllegalArgumentException e) {
-                    throw new YokohamaException("Database error");
-                }
-            }
-
-            System.out.println("Successfully loaded");
-            return returnArr;
-        } catch (Exception e) {
-            System.out.println("Error: " + e);
-        }
-
-        return null;
     }
 
     public static void main(String[] args) {
@@ -92,7 +35,7 @@ public class Yokohama {
 
         if(f.exists()) {
             try {
-                todo_list = loadFile(f);
+                todo_list = storage.loadFile(f);
             } catch (Exception e) {
                 System.out.println("An error occured: " + e.getMessage());
             }
@@ -127,7 +70,7 @@ public class Yokohama {
                     case EXIT:
                         isRunning = false;
                         try{
-                            writeToFile(FILEPATH, todo_list);
+                            storage.writeToFile(FILEPATH, todo_list);
                             System.out.println("Successfully saved data.");
                         } catch (Exception e) {
                             throw new YokohamaException("Writing to file failed! Error: " + e.getMessage());
