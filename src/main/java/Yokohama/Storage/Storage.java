@@ -12,7 +12,11 @@ import java.util.Scanner;
 
 public class Storage {
     public void writeToFile(String filePath, ArrayList<Todo> data) throws IOException {
-        FileWriter fw = new FileWriter(filePath);
+        File file = new File(filePath);
+        if (file.getParentFile() != null && !file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        }
+        FileWriter fw = new FileWriter(file);
 
         String textToAdd = "";
 

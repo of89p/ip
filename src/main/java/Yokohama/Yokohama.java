@@ -28,7 +28,7 @@ public class Yokohama {
 
     public static void main(String[] args) {
         final String BOT_NAME = "Yokohama";
-        final String FILEPATH = "src/main/java/todo_data.txt";
+        final String FILEPATH = "data/todo_data.txt";
         ArrayList<Todo> todo_list = new ArrayList<>();
 
         File f = new File(FILEPATH);
