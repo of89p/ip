@@ -1,7 +1,13 @@
-package Yokohama.Ui;
+package yokohama.ui;
 
+/**
+ * Displays the application's text-based user interface.
+ */
 public class Graphics {
-    public void printWelcomeBanner () {
+    /**
+     * Prints the welcome banner and usage hint.
+     */
+    public void printWelcomeBanner() {
         String banner = "__   __  ___  _  __  ___  _   _    _    __  __    _    \n"
                 + "\\ \\ / / / _ \\| |/ / / _ \\| | | |  / \\  |  \\/  |  / \\   \n"
                 + " \\ V / | | | | ' / | | | | |_| | / _ \\ | |\\/| | / _ \\  \n"
@@ -10,10 +16,15 @@ public class Graphics {
 
         System.out.println("Hello, welcome to ");
         System.out.println(banner);
-        System.out.println("Enter 'exit' to leave program. Yokohama.Yokohama would return all inputs as is.");
+        System.out.println("Enter 'exit' to leave the program. Yokohama returns all inputs as is.");
     }
 
-    public void printErrorCat(Exception e) {
+    /**
+     * Prints an error message with the error illustration.
+     *
+     * @param exception Exception containing the error message.
+     */
+    public void printErrorCat(Exception exception) {
         System.out.println("   |\\---/|    ");
         System.out.println("   | x_x |    ");
         System.out.println("    \\_^_/     ");
@@ -21,6 +32,6 @@ public class Graphics {
         System.out.println("  |  / \\  |   ");
         System.out.println("  / |   | \\   ");
         System.out.println(" \"\"'     '\"\"  ");
-        System.out.println("OOPS!!! " + e.getMessage()+"\n");
+        System.out.println("OOPS!!! " + exception.getMessage() + "\n");
     }
 }
