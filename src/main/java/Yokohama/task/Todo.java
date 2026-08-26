@@ -31,6 +31,17 @@ public abstract class Todo {
         }
     }
 
+    /**
+     * Returns whether this task's description contains the specified search keyword.
+     * Matching is case-insensitive.
+     *
+     * @param keyword Keyword to search for.
+     * @return {@code true} if the description contains the keyword.
+     */
+    public boolean hasKeyword(String keyword) {
+        return name.toLowerCase(Locale.ROOT).contains(keyword.toLowerCase(Locale.ROOT));
+    }
+
     protected static String convertFromLocalDateTime(LocalDateTime dateTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM/dd/yyyy HHmm");
         try {

@@ -6,8 +6,24 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TaskTest {
+    @Test
+    public void hasKeyword_keywordMatchesIgnoringCase_true() {
+        Task task = new Task("Buy Groceries", false);
+
+        assertTrue(task.hasKeyword("groceries"));
+    }
+
+    @Test
+    public void hasKeyword_keywordDoesNotMatch_false() {
+        Task task = new Task("Buy Groceries", false);
+
+        assertFalse(task.hasKeyword("book"));
+    }
+
     @Test
     public void toDbString_taskNotDone_correctFormat() {
         Task task = new Task("buy groceries", false);

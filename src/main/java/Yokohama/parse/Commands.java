@@ -1,5 +1,5 @@
 package Yokohama.parse;
 
 public enum Commands {
-    EXIT, LIST, MARK, UNMARK, DELETE, TODO, DEADLINE, EVENT
+    EXIT, LIST, FIND, MARK, UNMARK, DELETE, TODO, DEADLINE, EVENT
 }
