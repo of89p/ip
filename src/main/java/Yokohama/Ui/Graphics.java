@@ -1,5 +1,9 @@
 package Yokohama.Ui;
 
+/**
+ * Handles printing of ASCII messages:
+ * Welcome banner and cat error message.
+ */
 public class Graphics {
     public void printWelcomeBanner () {
         String banner = "__   __  ___  _  __  ___  _   _    _    __  __    _    \n"
