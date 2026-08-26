@@ -10,7 +10,18 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+/**
+ * Handles the reading and writing of data to data file.
+ */
 public class Storage {
+    /**
+     * Writes data to filePath.
+     * Mainly to save data of one session when user exits program.
+     *
+     * @param filePath Filepath of file to write to.
+     * @param data The data written to file.
+     * @throws IOException When there is an error opening/creating the file to be written to.
+     */
     public void writeToFile(String filePath, ArrayList<Todo> data) throws IOException {
         File file = new File(filePath);
         if (file.getParentFile() != null && !file.getParentFile().exists()) {
@@ -20,6 +31,7 @@ public class Storage {
 
         String textToAdd = "";
 
+//        TODO: Change to stringbuilder
         for (int i = 0; i < data.size(); i++) {
             textToAdd += data.get(i).toDbString();
         }
@@ -28,6 +40,14 @@ public class Storage {
         fw.close();
     }
 
+    /**
+     * Reads data from storage file.
+     * Mainly to read data when the program starts.
+     *
+     * @param f File object that contains data from the previous session.
+     * @return Returns a new ArrayList that represents data from the data file.
+     * @throws IOException When there is an error opening/creating the file to be written to.
+     */
     public ArrayList<Todo> loadFile(File f) throws IOException {
         try {
             ArrayList<Todo> returnArr = new ArrayList<>();
