@@ -1,15 +1,15 @@
-package Yokohama.task;
+package yokohama.task;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 public class DeadlineTest {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy HHmm");
-    LocalDateTime byConverted = LocalDateTime.parse("2/12/2019 1800", formatter);
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy HHmm");
+    private final LocalDateTime byConverted = LocalDateTime.parse("2/12/2019 1800", formatter);
 
     @Test
     public void toDbString_taskNotDone_correctFormat() {
