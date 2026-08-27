@@ -97,6 +97,27 @@ public class Yokohama {
                         }
                         break;
 
+                    case FIND:
+                        String keyword = input.substring(parts[0].length()).trim();
+                        if (keyword.isEmpty()) {
+                            throw new YokohamaException("Provide a keyword to find matching tasks!");
+                        }
+
+                        boolean hasMatchingTask = false;
+                        System.out.println("Here are the matching tasks in your list:");
+                        for (int i = 0; i < todo_list.size(); i++) {
+                            Todo task = todo_list.get(i);
+                            if (task.hasKeyword(keyword)) {
+                                System.out.printf("%d: %s\n", i + 1, task);
+                                hasMatchingTask = true;
+                            }
+                        }
+
+                        if (!hasMatchingTask) {
+                            System.out.println("No tasks match that keyword.");
+                        }
+                        break;
+
                     case MARK:
                         if (parts.length < 2) {
                             throw new YokohamaException("Task number not provided!");
