@@ -53,10 +53,11 @@ public class Main extends Application {
         stage.setOnCloseRequest(event -> saveTasks());
         stage.show();
 
-        addMessage("Welcome to Yokohama! Your personal task assistant is online.", false);
-        addMessage("Try: todo buy milk\n"
-                + "Or: deadline submit report /by 9/3/2026 2359\n"
-                + "Use list, mark <number>, unmark <number>, delete <number>, or find <word>.", false);
+        addMessages(false,
+                "Welcome to Yokohama! Your personal task assistant is online.",
+                "Try: todo buy milk\n"
+                        + "Or: deadline submit report /by 9/3/2026 2359\n"
+                        + "Use list, mark <number>, unmark <number>, delete <number>, or find <word>.");
     }
 
     private VBox createSidebar() {
@@ -244,6 +245,18 @@ public class Main extends Application {
         row.setAlignment(isUser ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
         messages.getChildren().add(row);
         Platform.runLater(() -> messagePane.setVvalue(1));
+    }
+
+    /**
+     * Adds one or more message bubbles with the same sender styling.
+     *
+     * @param isUser Whether the messages were sent by the user.
+     * @param texts Message texts to display; Java collects these into an array.
+     */
+    private void addMessages(boolean isUser, String... texts) {
+        for (String text : texts) {
+            addMessage(text, isUser);
+        }
     }
 
     private void require(boolean condition, String message) {
