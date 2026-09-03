@@ -63,6 +63,17 @@ public abstract class Todo {
     }
 
     /**
+     * Returns whether this task's description contains the specified search keyword.
+     * Matching is case-insensitive.
+     *
+     * @param keyword Keyword to search for.
+     * @return {@code true} if the description contains the keyword.
+     */
+    public boolean hasKeyword(String keyword) {
+        return this.description.toLowerCase(Locale.ROOT).contains(keyword.toLowerCase(Locale.ROOT));
+    }
+
+    /**
      * Returns this task in the format used by the data file.
      *
      * @return Serialized task representation.

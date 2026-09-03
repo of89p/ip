@@ -105,8 +105,8 @@ public class Yokohama {
 
                         boolean hasMatchingTask = false;
                         System.out.println("Here are the matching tasks in your list:");
-                        for (int i = 0; i < todo_list.size(); i++) {
-                            Todo task = todo_list.get(i);
+                        for (int i = 0; i < todoList.size(); i++) {
+                            Todo task = todoList.get(i);
                             if (task.hasKeyword(keyword)) {
                                 System.out.printf("%d: %s\n", i + 1, task);
                                 hasMatchingTask = true;
