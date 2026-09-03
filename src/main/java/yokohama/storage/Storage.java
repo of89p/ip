@@ -76,6 +76,9 @@ public class Storage {
                             tasks.add(new Event(description, done.equals("1"), LocalDateTime.parse(start),
                                     LocalDateTime.parse(end)));
                         }
+                        default -> {
+                            break;
+                        }
                     }
                 } catch (IllegalArgumentException e) {
                     throw new YokohamaException("Database error");
