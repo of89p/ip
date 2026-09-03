@@ -1,8 +1,8 @@
 package yokohama;
 
-import java.util.ArrayList;
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import yokohama.exceptions.YokohamaException;
@@ -69,7 +69,7 @@ public class Yokohama {
                 try {
                     command = Commands.valueOf(parts[0].toUpperCase());
                 } catch (IllegalArgumentException e) {
-                        throw new YokohamaException("Unrecognized command!");
+                    throw new YokohamaException("Unrecognized command!");
                 }
 
                 switch (command) {
@@ -228,6 +228,9 @@ public class Yokohama {
                                 throw new YokohamaException(e.getMessage());
                             }
                         }
+                        break;
+
+                    default:
                         break;
                 }
 
