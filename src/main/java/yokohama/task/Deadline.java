@@ -22,7 +22,7 @@ public class Deadline extends Todo {
 
     @Override
     public String toDbString() {
-        return String.format("D | %s | %s | %s \n", isDone() ? "1" : "0", getDescription(), deadline);
+        return String.format("D | %s | %s | %s \n", getStorageCompletionValue(), getDescription(), deadline);
     }
 
     @Override

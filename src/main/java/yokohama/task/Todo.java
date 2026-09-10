@@ -8,6 +8,9 @@ import java.util.Locale;
  * Represents a task with a description and completion state.
  */
 public abstract class Todo {
+    private static final String COMPLETED_STORAGE_VALUE = "1";
+    private static final String INCOMPLETE_STORAGE_VALUE = "0";
+
     private final String description;
     private boolean isDone;
 
@@ -50,6 +53,15 @@ public abstract class Todo {
 
     protected final boolean isDone() {
         return isDone;
+    }
+
+    /**
+     * Returns this task's completion state in the format used by the data file.
+     *
+     * @return {@code "1"} for a completed task, otherwise {@code "0"}.
+     */
+    protected final String getStorageCompletionValue() {
+        return isDone ? COMPLETED_STORAGE_VALUE : INCOMPLETE_STORAGE_VALUE;
     }
 
     protected static String convertFromLocalDateTime(LocalDateTime dateTime) {

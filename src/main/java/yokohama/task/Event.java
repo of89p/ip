@@ -25,7 +25,7 @@ public class Event extends Todo {
 
     @Override
     public String toDbString() {
-        return String.format("E | %s | %s | %s | %s\n", isDone() ? "1" : "0", getDescription(), start, end);
+        return String.format("E | %s | %s | %s | %s\n", getStorageCompletionValue(), getDescription(), start, end);
     }
 
     @Override
