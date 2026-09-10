@@ -1,5 +1,6 @@
 package yokohama.task;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -85,6 +86,17 @@ public abstract class Todo {
      */
     public boolean hasKeyword(String keyword) {
         return this.description.toLowerCase(Locale.ROOT).contains(keyword.toLowerCase(Locale.ROOT));
+    }
+
+    /**
+     * Returns whether this task is scheduled on the specified date.
+     * Ordinary tasks have no scheduled date.
+     *
+     * @param date Date to check.
+     * @return {@code true} if this task occurs on the date.
+     */
+    public boolean occursOn(LocalDate date) {
+        return false;
     }
 
     /**

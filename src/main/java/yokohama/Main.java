@@ -2,6 +2,7 @@ package yokohama;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -74,7 +75,8 @@ public class Main extends Application {
                 "Welcome to Yokohama! Your personal task assistant is online.",
                 "Try: todo buy milk\n"
                         + "Or: deadline submit report /by 9/3/2026 2359\n"
-                        + "Use list, mark <number>, unmark <number>, delete <number>, or find <word>.");
+                        + "Use list, schedule M/d/yyyy, mark <number>, unmark <number>, "
+                        + "delete <number>, or find <word>.");
     }
 
     private VBox createSidebar() {
@@ -140,6 +142,7 @@ public class Main extends Application {
                 case "event" -> addEvent(payload);
                 case "list" -> listTasks();
                 case "find" -> findTasks(payload);
+                case "schedule" -> viewSchedule(payload);
                 case "mark" -> changeTask(payload, true);
                 case "unmark" -> changeTask(payload, false);
                 case "delete" -> deleteTask(payload);
@@ -148,7 +151,7 @@ public class Main extends Application {
                     Platform.exit();
                     yield "Your tasks are saved. See you next time!";
                 }
-                default -> "I don't recognise that command. Try todo, list, deadline, or event.";
+                default -> "I don't recognise that command. Try todo, list, deadline, event, or schedule.";
             };
         } catch (IllegalArgumentException | DateTimeParseException exception) {
             return "⚠ " + exception.getMessage();
@@ -211,6 +214,18 @@ public class Main extends Application {
                 .collect(Collectors.joining("\n"));
         return matchingTasks.isEmpty()
                 ? "No tasks match that keyword." : "Matching tasks:\n" + matchingTasks;
+    }
+
+    private String viewSchedule(String dateInput) {
+        require(!dateInput.isEmpty(), "Use: schedule M/d/yyyy");
+        LocalDate date = DateTimeHandler.convertToLocalDate(dateInput);
+        String scheduledTasks = IntStream.range(0, tasks.size())
+                .filter(index -> tasks.get(index).occursOn(date))
+                .mapToObj(index -> (index + 1) + ". " + tasks.get(index))
+                .collect(Collectors.joining("\n"));
+        return scheduledTasks.isEmpty()
+                ? "No tasks are scheduled for " + dateInput + "."
+                : "Schedule for " + dateInput + ":\n" + scheduledTasks;
     }
 
     private String changeTask(String number, boolean completed) {

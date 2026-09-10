@@ -1,5 +1,6 @@
 package yokohama.utils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -10,6 +11,8 @@ public class DateTimeHandler {
 
     /** Formatter for the application's date-time input and display format. */
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("M/d/yyyy HHmm");
+    /** Formatter for a date without a time. */
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("M/d/yyyy");
 
     /**
      * Converts a date-time string in the application's standard format to a {@code LocalDateTime}.
@@ -19,6 +22,16 @@ public class DateTimeHandler {
      */
     public static LocalDateTime convertToLocalDateTime(String dateTime) {
         return LocalDateTime.parse(dateTime, DATE_TIME_FORMATTER);
+    }
+
+    /**
+     * Converts a date string in the application's standard schedule format to a {@code LocalDate}.
+     *
+     * @param date Date string in {@code M/d/yyyy} format.
+     * @return Parsed date value.
+     */
+    public static LocalDate convertToLocalDate(String date) {
+        return LocalDate.parse(date, DATE_FORMATTER);
     }
 
     /**
