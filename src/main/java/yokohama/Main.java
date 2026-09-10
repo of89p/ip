@@ -140,7 +140,9 @@ public class Main extends Application {
 
     private String addTodo(String description) {
         require(!description.isEmpty(), "A todo cannot be empty.");
-        tasks.add(new Task(description, false));
+        Todo task = new Task(description, false);
+        tasks.add(task);
+        assert tasks.getLast() == task : "A newly added todo should be the last task";
         saveTasks();
         return "Added a task:\n" + tasks.getLast();
     }
@@ -150,7 +152,9 @@ public class Main extends Application {
         require(details.length == 2 && !details[0].isBlank() && !details[1].isBlank(),
                 "Use: deadline <description> /by M/d/yyyy HHmm");
         LocalDateTime by = DateTimeHandler.convertToLocalDateTime(details[1].trim());
-        tasks.add(new Deadline(details[0].trim(), false, by));
+        Todo deadline = new Deadline(details[0].trim(), false, by);
+        tasks.add(deadline); added todo should be the last task";
+        assert tasks.getLast() == deadline : "A newly added deadline should be the last task";
         saveTasks();
         return "Added a deadline:\n" + tasks.getLast();
     }
@@ -162,7 +166,9 @@ public class Main extends Application {
                 "Use: event <description> /from M/d/yyyy HHmm /to M/d/yyyy HHmm");
         LocalDateTime from = DateTimeHandler.convertToLocalDateTime(payload.substring(fromIndex + 7, toIndex).trim());
         LocalDateTime to = DateTimeHandler.convertToLocalDateTime(payload.substring(toIndex + 5).trim());
-        tasks.add(new Event(payload.substring(0, fromIndex).trim(), false, from, to));
+        Todo event = new Event(payload.substring(0, fromIndex).trim(), false, from, to);
+        tasks.add(event);
+        assert tasks.getLast() == event : "A newly added event should be the last task";
         saveTasks();
         return "Added an event:\n" + tasks.getLast();
     }
@@ -205,7 +211,11 @@ public class Main extends Application {
     }
 
     private Todo getTask(String number) {
-        return tasks.get(getIndex(number));
+        int index = getIndex(number);
+        assert index >= 0 && index < tasks.size() : "getIndex must return a valid task index";
+        Todo task = tasks.get(index);
+        assert task != null : "The task list must not contain null entries";
+        return task;
     }
 
     private int getIndex(String number) {
@@ -223,6 +233,8 @@ public class Main extends Application {
         if (file.exists()) {
             ArrayList<Todo> savedTasks = storage.loadFile(file);
             if (savedTasks != null) {
+                assert savedTasks.stream().noneMatch(task -> task == null)
+                        : "Storage must not return null task entries";
                 tasks.addAll(savedTasks);
             }
         }
@@ -237,6 +249,7 @@ public class Main extends Application {
     }
 
     private void addMessage(String text, boolean isUser) {
+        assert text != null : "Messages sent to the interface must have text";
         Label bubble = new Label(text);
         bubble.setWrapText(true);
         bubble.setMaxWidth(580);
