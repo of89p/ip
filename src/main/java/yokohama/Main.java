@@ -153,7 +153,7 @@ public class Main extends Application {
                 "Use: deadline <description> /by M/d/yyyy HHmm");
         LocalDateTime by = DateTimeHandler.convertToLocalDateTime(details[1].trim());
         Todo deadline = new Deadline(details[0].trim(), false, by);
-        tasks.add(deadline); added todo should be the last task";
+        tasks.add(deadline);
         assert tasks.getLast() == deadline : "A newly added deadline should be the last task";
         saveTasks();
         return "Added a deadline:\n" + tasks.getLast();
