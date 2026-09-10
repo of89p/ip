@@ -1,7 +1,9 @@
 package yokohama;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -31,10 +33,23 @@ import yokohama.utils.DateTimeHandler;
  */
 public class Main extends Application {
     private static final String FILE_PATH = "data/todo_data.txt";
+    private static final int MAX_COMMAND_PARTS = 2;
+    private static final String DEADLINE_SEPARATOR = " /by ";
+    private static final String EVENT_FROM_SEPARATOR = " /from ";
+    private static final String EVENT_TO_SEPARATOR = " /to ";
+    private static final int MESSAGE_SPACING = 10;
+    private static final int COMPOSER_SPACING = 10;
+    private static final int SIDEBAR_SPACING = 18;
+    private static final int HEADER_SPACING = 2;
+    private static final int WINDOW_WIDTH = 1000;
+    private static final int WINDOW_HEIGHT = 680;
+    private static final int MINIMUM_WINDOW_WIDTH = 760;
+    private static final int MINIMUM_WINDOW_HEIGHT = 520;
+    private static final int MESSAGE_MAXIMUM_WIDTH = 580;
 
     private final ArrayList<Todo> tasks = new ArrayList<>();
     private final Storage storage = new Storage();
-    private final VBox messages = new VBox(10);
+    private final VBox messages = new VBox(MESSAGE_SPACING);
     private final ScrollPane messagePane = new ScrollPane(messages);
     private final TextField commandField = new TextField();
 
@@ -46,11 +61,11 @@ public class Main extends Application {
         root.setLeft(createSidebar());
         root.setCenter(createChat());
 
-        Scene scene = new Scene(root, 1000, 680);
+        Scene scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
         scene.getStylesheets().add(getClass().getResource("/yokohama/style.css").toExternalForm());
         stage.setTitle("Yokohama");
-        stage.setMinWidth(760);
-        stage.setMinHeight(520);
+        stage.setMinWidth(MINIMUM_WINDOW_WIDTH);
+        stage.setMinHeight(MINIMUM_WINDOW_HEIGHT);
         stage.setScene(scene);
         stage.setOnCloseRequest(event -> saveTasks());
         stage.show();
@@ -71,7 +86,7 @@ public class Main extends Application {
         taskChat.getStyleClass().add("chat-item");
         Label hint = new Label("Your saved tasks are kept\nlocally on this device.");
         hint.getStyleClass().add("sidebar-hint");
-        return new VBox(18, logo, search, taskChat, hint);
+        return new VBox(SIDEBAR_SPACING, logo, search, taskChat, hint);
     }
 
     private BorderPane createChat() {
@@ -79,7 +94,7 @@ public class Main extends Application {
         title.getStyleClass().add("chat-name");
         Label status = new Label("online");
         status.getStyleClass().add("chat-status");
-        VBox header = new VBox(2, title, status);
+        VBox header = new VBox(HEADER_SPACING, title, status);
         header.getStyleClass().add("chat-header");
 
         messages.getStyleClass().add("messages");
@@ -93,7 +108,7 @@ public class Main extends Application {
         Button sendButton = new Button("Send");
         sendButton.getStyleClass().add("send-button");
         sendButton.setOnAction(event -> sendCommand());
-        HBox composer = new HBox(10, commandField, sendButton);
+        HBox composer = new HBox(COMPOSER_SPACING, commandField, sendButton);
         composer.setAlignment(Pos.CENTER);
         composer.getStyleClass().add("composer");
 
@@ -115,9 +130,9 @@ public class Main extends Application {
     }
 
     private String handleCommand(String input) {
-        String[] parts = input.split("\\s+", 2);
+        String[] parts = input.split("\\s+", MAX_COMMAND_PARTS);
         String action = parts[0].toLowerCase();
-        String payload = parts.length == 2 ? parts[1].trim() : "";
+        String payload = parts.length == MAX_COMMAND_PARTS ? parts[1].trim() : "";
         try {
             return switch (action) {
                 case "todo" -> addTodo(payload);
@@ -135,7 +150,7 @@ public class Main extends Application {
                 }
                 default -> "I don't recognise that command. Try todo, list, deadline, or event.";
             };
-        } catch (Exception exception) {
+        } catch (IllegalArgumentException | DateTimeParseException exception) {
             return "⚠ " + exception.getMessage();
         }
     }
@@ -150,24 +165,26 @@ public class Main extends Application {
     }
 
     private String addDeadline(String payload) {
-        String[] details = payload.split(" /by ", 2);
+        String[] details = payload.split(DEADLINE_SEPARATOR, MAX_COMMAND_PARTS);
         require(details.length == 2 && !details[0].isBlank() && !details[1].isBlank(),
                 "Use: deadline <description> /by M/d/yyyy HHmm");
         LocalDateTime by = DateTimeHandler.convertToLocalDateTime(details[1].trim());
         Todo deadline = new Deadline(details[0].trim(), false, by);
-        tasks.add(deadline); added todo should be the last task";
+        tasks.add(deadline);
         assert tasks.getLast() == deadline : "A newly added deadline should be the last task";
         saveTasks();
         return "Added a deadline:\n" + tasks.getLast();
     }
 
     private String addEvent(String payload) {
-        int fromIndex = payload.indexOf(" /from ");
-        int toIndex = payload.indexOf(" /to ");
+        int fromIndex = payload.indexOf(EVENT_FROM_SEPARATOR);
+        int toIndex = payload.indexOf(EVENT_TO_SEPARATOR);
         require(fromIndex > 0 && toIndex > fromIndex,
                 "Use: event <description> /from M/d/yyyy HHmm /to M/d/yyyy HHmm");
-        LocalDateTime from = DateTimeHandler.convertToLocalDateTime(payload.substring(fromIndex + 7, toIndex).trim());
-        LocalDateTime to = DateTimeHandler.convertToLocalDateTime(payload.substring(toIndex + 5).trim());
+        LocalDateTime from = DateTimeHandler.convertToLocalDateTime(
+                payload.substring(fromIndex + EVENT_FROM_SEPARATOR.length(), toIndex).trim());
+        LocalDateTime to = DateTimeHandler.convertToLocalDateTime(
+                payload.substring(toIndex + EVENT_TO_SEPARATOR.length()).trim());
         Todo event = new Event(payload.substring(0, fromIndex).trim(), false, from, to);
         tasks.add(event);
         assert tasks.getLast() == event : "A newly added event should be the last task";
@@ -243,7 +260,7 @@ public class Main extends Application {
     private void saveTasks() {
         try {
             storage.writeToFile(FILE_PATH, tasks);
-        } catch (Exception exception) {
+        } catch (IOException exception) {
             // The user still sees their current session even if disk writing fails.
         }
     }
@@ -252,7 +269,7 @@ public class Main extends Application {
         assert text != null : "Messages sent to the interface must have text";
         Label bubble = new Label(text);
         bubble.setWrapText(true);
-        bubble.setMaxWidth(580);
+        bubble.setMaxWidth(MESSAGE_MAXIMUM_WIDTH);
         bubble.getStyleClass().add(isUser ? "user-bubble" : "assistant-bubble");
         HBox row = new HBox(bubble);
         row.setAlignment(isUser ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
