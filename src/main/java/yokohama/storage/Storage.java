@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 import yokohama.exceptions.YokohamaException;
 import yokohama.task.Deadline;
@@ -34,13 +35,12 @@ public class Storage {
             Files.createDirectories(parentDirectory.toPath());
         }
 
-        StringBuilder textToAdd = new StringBuilder();
-        for (Todo task : tasks) {
-            textToAdd.append(task.toDbString());
-        }
+        String textToAdd = tasks.stream()
+                .map(Todo::toDbString)
+                .collect(Collectors.joining());
 
         try (FileWriter writer = new FileWriter(file)) {
-            writer.write(textToAdd.toString());
+            writer.write(textToAdd);
         }
     }
 

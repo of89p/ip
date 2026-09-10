@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -203,14 +205,12 @@ public class Main extends Application {
 
     private String findTasks(String keyword) {
         require(!keyword.isEmpty(), "Provide a keyword to find matching tasks.");
-        StringBuilder result = new StringBuilder("Matching tasks:\n");
-        for (int index = 0; index < tasks.size(); index++) {
-            if (tasks.get(index).hasKeyword(keyword)) {
-                result.append(index + 1).append(". ").append(tasks.get(index)).append('\n');
-            }
-        }
-        return result.length() == "Matching tasks:\n".length()
-                ? "No tasks match that keyword." : result.toString().trim();
+        String matchingTasks = IntStream.range(0, tasks.size())
+                .filter(index -> tasks.get(index).hasKeyword(keyword))
+                .mapToObj(index -> (index + 1) + ". " + tasks.get(index))
+                .collect(Collectors.joining("\n"));
+        return matchingTasks.isEmpty()
+                ? "No tasks match that keyword." : "Matching tasks:\n" + matchingTasks;
     }
 
     private String changeTask(String number, boolean completed) {
