@@ -8,6 +8,13 @@ import java.util.Locale;
  * Represents a task with a description and completion state.
  */
 public abstract class Todo {
+    private static final String COMPLETED_STORAGE_VALUE = "1";
+    private static final String INCOMPLETE_STORAGE_VALUE = "0";
+    private static final DateTimeFormatter EVENT_DATE_TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("MMM/dd/yyyy HHmm");
+    private static final DateTimeFormatter USER_DATE_TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("MMM dd yyyy, h:mm a", Locale.ENGLISH);
+
     private final String description;
     private boolean isDone;
 
@@ -52,14 +59,21 @@ public abstract class Todo {
         return isDone;
     }
 
+    /**
+     * Returns this task's completion state in the format used by the data file.
+     *
+     * @return {@code "1"} for a completed task, otherwise {@code "0"}.
+     */
+    protected final String getStorageCompletionValue() {
+        return isDone ? COMPLETED_STORAGE_VALUE : INCOMPLETE_STORAGE_VALUE;
+    }
+
     protected static String convertFromLocalDateTime(LocalDateTime dateTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM/dd/yyyy HHmm");
-        return dateTime.format(formatter);
+        return dateTime.format(EVENT_DATE_TIME_FORMATTER);
     }
 
     protected static String formatForUser(LocalDateTime dateTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd yyyy, h:mm a", Locale.ENGLISH);
-        return dateTime.format(formatter);
+        return dateTime.format(USER_DATE_TIME_FORMATTER);
     }
 
     /**

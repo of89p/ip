@@ -3,6 +3,7 @@ package yokohama.storage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +29,9 @@ public class Storage {
      */
     public void writeToFile(String filePath, List<Todo> tasks) throws IOException {
         File file = new File(filePath);
-        if (file.getParentFile() != null && !file.getParentFile().exists()) {
-            file.getParentFile().mkdirs();
+        File parentDirectory = file.getParentFile();
+        if (parentDirectory != null) {
+            Files.createDirectories(parentDirectory.toPath());
         }
 
         StringBuilder textToAdd = new StringBuilder();

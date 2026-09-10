@@ -16,7 +16,7 @@ public class Task extends Todo {
 
     @Override
     public String toDbString() {
-        return String.format("T | %s | %s\n", isDone() ? "1" : "0", getDescription());
+        return String.format("T | %s | %s\n", getStorageCompletionValue(), getDescription());
     }
 
     @Override
