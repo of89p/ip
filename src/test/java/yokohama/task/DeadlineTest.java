@@ -1,7 +1,9 @@
 package yokohama.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -28,5 +30,12 @@ public class DeadlineTest {
         Deadline task = new Deadline("return book", false, byConverted);
 
         assertEquals("[D][  ] return book (by: Feb 12 2019, 6:00 PM)", task.toString());
+    }
+
+    @Test
+    public void occursOn_deadlineDate_true() {
+        Deadline deadline = new Deadline("return book", false, byConverted);
+
+        assertTrue(deadline.occursOn(LocalDate.of(2019, 2, 12)));
     }
 }

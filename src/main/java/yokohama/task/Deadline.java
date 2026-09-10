@@ -1,5 +1,6 @@
 package yokohama.task;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -23,6 +24,11 @@ public class Deadline extends Todo {
     @Override
     public String toDbString() {
         return String.format("D | %s | %s | %s \n", getStorageCompletionValue(), getDescription(), deadline);
+    }
+
+    @Override
+    public boolean occursOn(LocalDate date) {
+        return deadline.toLocalDate().equals(date);
     }
 
     @Override

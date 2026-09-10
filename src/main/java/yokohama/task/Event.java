@@ -1,5 +1,6 @@
 package yokohama.task;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -26,6 +27,13 @@ public class Event extends Todo {
     @Override
     public String toDbString() {
         return String.format("E | %s | %s | %s | %s\n", getStorageCompletionValue(), getDescription(), start, end);
+    }
+
+    @Override
+    public boolean occursOn(LocalDate date) {
+        LocalDate startDate = start.toLocalDate();
+        LocalDate endDate = end.toLocalDate();
+        return !date.isBefore(startDate) && !date.isAfter(endDate);
     }
 
     @Override
