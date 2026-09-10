@@ -29,6 +29,10 @@ import yokohama.utils.DateTimeHandler;
  */
 public class Main extends Application {
     private static final String FILE_PATH = "data/todo_data.txt";
+    private static final int MAX_COMMAND_PARTS = 2;
+    private static final String DEADLINE_SEPARATOR = " /by ";
+    private static final String EVENT_FROM_SEPARATOR = " /from ";
+    private static final String EVENT_TO_SEPARATOR = " /to ";
 
     private final ArrayList<Todo> tasks = new ArrayList<>();
     private final Storage storage = new Storage();
@@ -113,9 +117,9 @@ public class Main extends Application {
     }
 
     private String handleCommand(String input) {
-        String[] parts = input.split("\\s+", 2);
+        String[] parts = input.split("\\s+", MAX_COMMAND_PARTS);
         String action = parts[0].toLowerCase();
-        String payload = parts.length == 2 ? parts[1].trim() : "";
+        String payload = parts.length == MAX_COMMAND_PARTS ? parts[1].trim() : "";
         try {
             return switch (action) {
                 case "todo" -> addTodo(payload);
@@ -148,7 +152,7 @@ public class Main extends Application {
     }
 
     private String addDeadline(String payload) {
-        String[] details = payload.split(" /by ", 2);
+        String[] details = payload.split(DEADLINE_SEPARATOR, MAX_COMMAND_PARTS);
         require(details.length == 2 && !details[0].isBlank() && !details[1].isBlank(),
                 "Use: deadline <description> /by M/d/yyyy HHmm");
         LocalDateTime by = DateTimeHandler.convertToLocalDateTime(details[1].trim());
@@ -160,12 +164,14 @@ public class Main extends Application {
     }
 
     private String addEvent(String payload) {
-        int fromIndex = payload.indexOf(" /from ");
-        int toIndex = payload.indexOf(" /to ");
+        int fromIndex = payload.indexOf(EVENT_FROM_SEPARATOR);
+        int toIndex = payload.indexOf(EVENT_TO_SEPARATOR);
         require(fromIndex > 0 && toIndex > fromIndex,
                 "Use: event <description> /from M/d/yyyy HHmm /to M/d/yyyy HHmm");
-        LocalDateTime from = DateTimeHandler.convertToLocalDateTime(payload.substring(fromIndex + 7, toIndex).trim());
-        LocalDateTime to = DateTimeHandler.convertToLocalDateTime(payload.substring(toIndex + 5).trim());
+        LocalDateTime from = DateTimeHandler.convertToLocalDateTime(
+                payload.substring(fromIndex + EVENT_FROM_SEPARATOR.length(), toIndex).trim());
+        LocalDateTime to = DateTimeHandler.convertToLocalDateTime(
+                payload.substring(toIndex + EVENT_TO_SEPARATOR.length()).trim());
         Todo event = new Event(payload.substring(0, fromIndex).trim(), false, from, to);
         tasks.add(event);
         assert tasks.getLast() == event : "A newly added event should be the last task";
