@@ -1,7 +1,9 @@
 package yokohama;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 
 import javafx.application.Application;
@@ -137,7 +139,7 @@ public class Main extends Application {
                 }
                 default -> "I don't recognise that command. Try todo, list, deadline, or event.";
             };
-        } catch (Exception exception) {
+        } catch (IllegalArgumentException | DateTimeParseException exception) {
             return "⚠ " + exception.getMessage();
         }
     }
@@ -249,7 +251,7 @@ public class Main extends Application {
     private void saveTasks() {
         try {
             storage.writeToFile(FILE_PATH, tasks);
-        } catch (Exception exception) {
+        } catch (IOException exception) {
             // The user still sees their current session even if disk writing fails.
         }
     }
