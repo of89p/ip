@@ -20,6 +20,12 @@ public class Event extends Todo {
      */
     public Event(String description, boolean isDone, LocalDateTime start, LocalDateTime end) {
         super(description, isDone);
+        if (start == null || end == null) {
+            throw new IllegalArgumentException("Event start and end are required.");
+        }
+        if (!start.isBefore(end)) {
+            throw new IllegalArgumentException("Event start must be earlier than its end.");
+        }
         this.start = start;
         this.end = end;
     }

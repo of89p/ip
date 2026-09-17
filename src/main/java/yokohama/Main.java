@@ -2,9 +2,9 @@ package yokohama;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -23,6 +23,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import yokohama.exceptions.YokohamaException;
 import yokohama.storage.Storage;
 import yokohama.task.Deadline;
 import yokohama.task.Event;
@@ -54,6 +55,7 @@ public class Main extends Application {
     private final VBox messages = new VBox(MESSAGE_SPACING);
     private final ScrollPane messagePane = new ScrollPane(messages);
     private final TextField commandField = new TextField();
+    private String startupError;
 
     @Override
     public void start(Stage stage) {
@@ -79,6 +81,9 @@ public class Main extends Application {
                         + "Or: deadline submit report /by 9/3/2026 2359\n"
                         + "Use list, schedule M/d/yyyy, mark <number>, unmark <number>, "
                         + "delete <number>, or find <word>.");
+        if (startupError != null) {
+            addMessage(startupError, false, true);
+        }
     }
 
     private VBox createSidebar() {
@@ -124,8 +129,8 @@ public class Main extends Application {
     }
 
     private void sendCommand() {
-        String command = commandField.getText().trim();
-        if (command.isEmpty()) {
+        String command = commandField.getText();
+        if (command.isBlank()) {
             return;
         }
         addMessage(command, true);
@@ -135,10 +140,11 @@ public class Main extends Application {
     }
 
     private CommandResponse handleCommand(String input) {
-        String[] parts = input.split("\\s+", MAX_COMMAND_PARTS);
-        String action = parts[0].toLowerCase();
-        String payload = parts.length == MAX_COMMAND_PARTS ? parts[1].trim() : "";
         try {
+            validateCommandText(input);
+            String[] parts = input.split(" ", MAX_COMMAND_PARTS);
+            String action = parts[0].toLowerCase();
+            String payload = parts.length == MAX_COMMAND_PARTS ? parts[1].trim() : "";
             String response = switch (action) {
                 case "todo" -> addTodo(payload);
                 case "deadline" -> addDeadline(payload);
@@ -158,14 +164,15 @@ public class Main extends Application {
                         "I don't recognise that command. Try todo, list, deadline, event, or schedule.");
             };
             return new CommandResponse(response, false);
-        } catch (IllegalArgumentException | DateTimeParseException exception) {
+        } catch (IllegalArgumentException | DateTimeException | IllegalStateException exception) {
             return new CommandResponse("⚠ " + exception.getMessage(), true);
         }
     }
 
     private String addTodo(String description) {
-        require(!description.isEmpty(), "A todo cannot be empty.");
+        validateDescription(description, "A todo");
         Todo task = new Task(description, false);
+        requireUnique(task);
         tasks.add(task);
         assert tasks.getLast() == task : "A newly added todo should be the last task";
         saveTasks();
@@ -173,11 +180,14 @@ public class Main extends Application {
     }
 
     private String addDeadline(String payload) {
+        requireSeparatorCount(payload, "/by", DEADLINE_SEPARATOR);
         String[] details = payload.split(DEADLINE_SEPARATOR, MAX_COMMAND_PARTS);
         require(details.length == 2 && !details[0].isBlank() && !details[1].isBlank(),
                 "Use: deadline <description> /by M/d/yyyy HHmm");
+        validateDescription(details[0].trim(), "A deadline");
         LocalDateTime by = DateTimeHandler.convertToLocalDateTime(details[1].trim());
         Todo deadline = new Deadline(details[0].trim(), false, by);
+        requireUnique(deadline);
         tasks.add(deadline);
         assert tasks.getLast() == deadline : "A newly added deadline should be the last task";
         saveTasks();
@@ -185,15 +195,19 @@ public class Main extends Application {
     }
 
     private String addEvent(String payload) {
+        requireSeparatorCount(payload, "/from", EVENT_FROM_SEPARATOR);
+        requireSeparatorCount(payload, "/to", EVENT_TO_SEPARATOR);
         int fromIndex = payload.indexOf(EVENT_FROM_SEPARATOR);
         int toIndex = payload.indexOf(EVENT_TO_SEPARATOR);
         require(fromIndex > 0 && toIndex > fromIndex,
                 "Use: event <description> /from M/d/yyyy HHmm /to M/d/yyyy HHmm");
+        validateDescription(payload.substring(0, fromIndex).trim(), "An event");
         LocalDateTime from = DateTimeHandler.convertToLocalDateTime(
                 payload.substring(fromIndex + EVENT_FROM_SEPARATOR.length(), toIndex).trim());
         LocalDateTime to = DateTimeHandler.convertToLocalDateTime(
                 payload.substring(toIndex + EVENT_TO_SEPARATOR.length()).trim());
         Todo event = new Event(payload.substring(0, fromIndex).trim(), false, from, to);
+        requireUnique(event);
         tasks.add(event);
         assert tasks.getLast() == event : "A newly added event should be the last task";
         saveTasks();
@@ -213,6 +227,8 @@ public class Main extends Application {
 
     private String findTasks(String keyword) {
         require(!keyword.isEmpty(), "Provide a keyword to find matching tasks.");
+        require(!keyword.contains("|") && !keyword.matches(".*\\p{Cntrl}.*"),
+                "The search keyword contains unsupported characters.");
         String matchingTasks = IntStream.range(0, tasks.size())
                 .filter(index -> tasks.get(index).hasKeyword(keyword))
                 .mapToObj(index -> (index + 1) + ". " + tasks.get(index))
@@ -268,11 +284,15 @@ public class Main extends Application {
     private void loadTasks() {
         File file = new File(FILE_PATH);
         if (file.exists()) {
-            ArrayList<Todo> savedTasks = storage.loadFile(file);
-            if (savedTasks != null) {
-                assert savedTasks.stream().noneMatch(task -> task == null)
-                        : "Storage must not return null task entries";
-                tasks.addAll(savedTasks);
+            try {
+                ArrayList<Todo> savedTasks = storage.loadFile(file);
+                for (Todo task : savedTasks) {
+                    requireUnique(task);
+                    tasks.add(task);
+                }
+            } catch (IOException | YokohamaException | IllegalArgumentException exception) {
+                startupError = "⚠ Could not load saved tasks: " + exception.getMessage()
+                        + " New tasks will not replace the damaged file until it is fixed.";
             }
         }
     }
@@ -281,7 +301,7 @@ public class Main extends Application {
         try {
             storage.writeToFile(FILE_PATH, tasks);
         } catch (IOException exception) {
-            // The user still sees their current session even if disk writing fails.
+            throw new IllegalStateException("Could not save tasks. Check that the data file is writable.");
         }
     }
 
@@ -320,6 +340,38 @@ public class Main extends Application {
         if (!condition) {
             throw new IllegalArgumentException(message);
         }
+    }
+
+    private void validateCommandText(String input) {
+        require(!input.isEmpty(), "Enter a command.");
+        require(input.equals(input.trim()), "Remove leading and trailing spaces.");
+        require(input.indexOf('\t') < 0 && input.indexOf('\n') < 0 && input.indexOf('\r') < 0,
+                "Use single spaces between command parts.");
+        require(!input.contains("  "), "Use only one space between command parts.");
+        require(input.matches("[A-Za-z]+(?: .+)?"),
+                "Commands must start with a command name using letters only.");
+    }
+
+    private void validateDescription(String description, String itemName) {
+        require(!description.isBlank(), itemName + " description cannot be empty.");
+        require(!description.contains("|") && !description.matches(".*\\p{Cntrl}.*"),
+                "The description contains unsupported characters.");
+    }
+
+    private void requireSeparatorCount(String payload, String marker, String separator) {
+        int first = payload.indexOf(separator);
+        require(first >= 0 && first == payload.lastIndexOf(separator),
+                "The " + marker + " parameter must be specified exactly once.");
+    }
+
+    private void requireUnique(Todo candidate) {
+        String candidateData = canonicalData(candidate);
+        require(tasks.stream().noneMatch(task -> canonicalData(task).equals(candidateData)),
+                "A task with the same details already exists.");
+    }
+
+    private String canonicalData(Todo task) {
+        return task.toDbString().replace(" | 1 | ", " | 0 | ");
     }
 
     private record CommandResponse(String text, boolean error) {
