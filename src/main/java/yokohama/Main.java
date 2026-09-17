@@ -164,7 +164,12 @@ public class Main extends Application {
                         "I don't recognise that command. Try todo, list, deadline, event, or schedule.");
             };
             return new CommandResponse(response, false);
-        } catch (IllegalArgumentException | DateTimeException | IllegalStateException exception) {
+        } catch (DateTimeException exception) {
+            return new CommandResponse(
+                    "⚠ Invalid date or time. Use M/d/yyyy HHmm, such as 9/3/2026 2359. "
+                            + "For deadlines, the time may be omitted.",
+                    true);
+        } catch (IllegalArgumentException | IllegalStateException exception) {
             return new CommandResponse("⚠ " + exception.getMessage(), true);
         }
     }
