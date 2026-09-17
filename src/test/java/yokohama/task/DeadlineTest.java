@@ -1,6 +1,8 @@
 package yokohama.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
@@ -37,5 +39,17 @@ public class DeadlineTest {
         Deadline deadline = new Deadline("return book", false, byConverted);
 
         assertTrue(deadline.occursOn(LocalDate.of(2019, 2, 12)));
+    }
+
+    @Test
+    public void occursOn_differentDate_false() {
+        Deadline deadline = new Deadline("return book", false, byConverted);
+
+        assertFalse(deadline.occursOn(LocalDate.of(2019, 2, 13)));
+    }
+
+    @Test
+    public void constructor_nullDeadline_throwsException() {
+        assertThrows(IllegalArgumentException.class, () -> new Deadline("return book", false, null));
     }
 }
