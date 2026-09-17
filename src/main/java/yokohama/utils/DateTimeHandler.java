@@ -2,6 +2,7 @@ package yokohama.utils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 
@@ -25,6 +26,20 @@ public class DateTimeHandler {
      */
     public static LocalDateTime convertToLocalDateTime(String dateTime) {
         return LocalDateTime.parse(dateTime, DATE_TIME_FORMATTER);
+    }
+
+    /**
+     * Converts a deadline value with an optional time. Date-only deadlines use
+     * the end of the day so they remain useful for date-based scheduling.
+     *
+     * @param deadline Deadline in {@code M/d/yyyy} or {@code M/d/yyyy HHmm} format.
+     * @return Parsed deadline date and time.
+     */
+    public static LocalDateTime convertToDeadlineDateTime(String deadline) {
+        if (deadline.matches("\\d{1,2}/\\d{1,2}/\\d{4}")) {
+            return convertToLocalDate(deadline).atTime(LocalTime.of(23, 59));
+        }
+        return convertToLocalDateTime(deadline);
     }
 
     /**

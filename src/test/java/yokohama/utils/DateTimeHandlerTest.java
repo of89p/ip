@@ -20,6 +20,18 @@ public class DateTimeHandlerTest {
     }
 
     @Test
+    public void convertToDeadlineDateTime_dateOnly_usesEndOfDay() {
+        assertEquals(LocalDateTime.of(2026, 9, 3, 23, 59),
+                DateTimeHandler.convertToDeadlineDateTime("9/3/2026"));
+    }
+
+    @Test
+    public void convertToDeadlineDateTime_withTime_preservesTime() {
+        assertEquals(LocalDateTime.of(2026, 9, 3, 18, 30),
+                DateTimeHandler.convertToDeadlineDateTime("9/3/2026 1830"));
+    }
+
+    @Test
     public void convertToLocalDate_validValue_returnsDate() {
         assertEquals(LocalDate.of(2026, 9, 3),
                 DateTimeHandler.convertToLocalDate("9/3/2026"));

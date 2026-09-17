@@ -78,7 +78,7 @@ public class Main extends Application {
         addMessages(false,
                 "Welcome to Yokohama! Your personal task assistant is online.",
                 "Try: todo buy milk\n"
-                        + "Or: deadline submit report /by 9/3/2026 2359\n"
+                        + "Or: deadline submit report /by 9/3/2026 [2359]\n"
                         + "Use list, schedule M/d/yyyy, mark <number>, unmark <number>, "
                         + "delete <number>, or find <word>.");
         if (startupError != null) {
@@ -183,9 +183,9 @@ public class Main extends Application {
         requireSeparatorCount(payload, "/by", DEADLINE_SEPARATOR);
         String[] details = payload.split(DEADLINE_SEPARATOR, MAX_COMMAND_PARTS);
         require(details.length == 2 && !details[0].isBlank() && !details[1].isBlank(),
-                "Use: deadline <description> /by M/d/yyyy HHmm");
+                "Use: deadline <description> /by M/d/yyyy [HHmm]");
         validateDescription(details[0].trim(), "A deadline");
-        LocalDateTime by = DateTimeHandler.convertToLocalDateTime(details[1].trim());
+        LocalDateTime by = DateTimeHandler.convertToDeadlineDateTime(details[1].trim());
         Todo deadline = new Deadline(details[0].trim(), false, by);
         requireUnique(deadline);
         tasks.add(deadline);
