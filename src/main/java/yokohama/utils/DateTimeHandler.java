@@ -3,6 +3,7 @@ package yokohama.utils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
 
 /**
  * Converts date-time values between strings and {@link LocalDateTime} objects.
@@ -10,9 +11,11 @@ import java.time.format.DateTimeFormatter;
 public class DateTimeHandler {
 
     /** Formatter for the application's date-time input and display format. */
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("M/d/yyyy HHmm");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("M/d/uuuu HHmm")
+            .withResolverStyle(ResolverStyle.STRICT);
     /** Formatter for a date without a time. */
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("M/d/yyyy");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("M/d/uuuu")
+            .withResolverStyle(ResolverStyle.STRICT);
 
     /**
      * Converts a date-time string in the application's standard format to a {@code LocalDateTime}.

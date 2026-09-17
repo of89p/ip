@@ -20,6 +20,9 @@ public abstract class Todo {
     private boolean isDone;
 
     Todo(String description, boolean isDone) {
+        if (description == null || description.isBlank()) {
+            throw new IllegalArgumentException("Task description cannot be empty.");
+        }
         this.description = description;
         this.isDone = isDone;
     }

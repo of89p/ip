@@ -18,6 +18,9 @@ public class Deadline extends Todo {
      */
     public Deadline(String description, boolean isDone, LocalDateTime deadline) {
         super(description, isDone);
+        if (deadline == null) {
+            throw new IllegalArgumentException("Deadline date and time are required.");
+        }
         this.deadline = deadline;
     }
 
