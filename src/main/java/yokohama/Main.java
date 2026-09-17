@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -46,7 +47,7 @@ public class Main extends Application {
     private static final int WINDOW_HEIGHT = 680;
     private static final int MINIMUM_WINDOW_WIDTH = 760;
     private static final int MINIMUM_WINDOW_HEIGHT = 520;
-    private static final int MESSAGE_MAXIMUM_WIDTH = 580;
+    private static final int MESSAGE_HORIZONTAL_PADDING = 64;
 
     private final ArrayList<Todo> tasks = new ArrayList<>();
     private final Storage storage = new Storage();
@@ -65,6 +66,7 @@ public class Main extends Application {
         Scene scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
         scene.getStylesheets().add(getClass().getResource("/yokohama/style.css").toExternalForm());
         stage.setTitle("Yokohama");
+        stage.setResizable(true);
         stage.setMinWidth(MINIMUM_WINDOW_WIDTH);
         stage.setMinHeight(MINIMUM_WINDOW_HEIGHT);
         stage.setScene(scene);
@@ -128,15 +130,16 @@ public class Main extends Application {
         }
         addMessage(command, true);
         commandField.clear();
-        addMessage(handleCommand(command), false);
+        CommandResponse response = handleCommand(command);
+        addMessage(response.text(), false, response.error());
     }
 
-    private String handleCommand(String input) {
+    private CommandResponse handleCommand(String input) {
         String[] parts = input.split("\\s+", MAX_COMMAND_PARTS);
         String action = parts[0].toLowerCase();
         String payload = parts.length == MAX_COMMAND_PARTS ? parts[1].trim() : "";
         try {
-            return switch (action) {
+            String response = switch (action) {
                 case "todo" -> addTodo(payload);
                 case "deadline" -> addDeadline(payload);
                 case "event" -> addEvent(payload);
@@ -151,10 +154,12 @@ public class Main extends Application {
                     Platform.exit();
                     yield "Your tasks are saved. See you next time!";
                 }
-                default -> "I don't recognise that command. Try todo, list, deadline, event, or schedule.";
+                default -> throw new IllegalArgumentException(
+                        "I don't recognise that command. Try todo, list, deadline, event, or schedule.");
             };
+            return new CommandResponse(response, false);
         } catch (IllegalArgumentException | DateTimeParseException exception) {
-            return "⚠ " + exception.getMessage();
+            return new CommandResponse("⚠ " + exception.getMessage(), true);
         }
     }
 
@@ -281,12 +286,19 @@ public class Main extends Application {
     }
 
     private void addMessage(String text, boolean isUser) {
+        addMessage(text, isUser, false);
+    }
+
+    private void addMessage(String text, boolean isUser, boolean isError) {
         assert text != null : "Messages sent to the interface must have text";
         Label bubble = new Label(text);
         bubble.setWrapText(true);
-        bubble.setMaxWidth(MESSAGE_MAXIMUM_WIDTH);
-        bubble.getStyleClass().add(isUser ? "user-bubble" : "assistant-bubble");
+        bubble.maxWidthProperty().bind(Bindings.max(
+                messagePane.widthProperty().subtract(MESSAGE_HORIZONTAL_PADDING), 0));
+        bubble.getStyleClass().add(isError
+                ? "error-bubble" : isUser ? "user-bubble" : "assistant-bubble");
         HBox row = new HBox(bubble);
+        row.setMaxWidth(Double.MAX_VALUE);
         row.setAlignment(isUser ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
         messages.getChildren().add(row);
         Platform.runLater(() -> messagePane.setVvalue(1));
@@ -308,5 +320,8 @@ public class Main extends Application {
         if (!condition) {
             throw new IllegalArgumentException(message);
         }
+    }
+
+    private record CommandResponse(String text, boolean error) {
     }
 }
