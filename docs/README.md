@@ -29,6 +29,36 @@ press **Enter** or click **Send**.
 
 ## Commands
 
+Yokohama supports these commands:
+
+| Command | Purpose |
+| --- | --- |
+| `todo <description>` | Add a task without a date. |
+| `deadline <description> /by <date> [time]` | Add a deadline. |
+| `event <description> /from <date and time> /to <date and time>` | Add an event. |
+| `list` | List all saved tasks. |
+| `find <keyword>` | Find tasks whose descriptions contain a keyword. |
+| `schedule <date>` | Show deadlines and events scheduled for a date. |
+| `mark <number>` | Mark a task as complete. |
+| `unmark <number>` | Mark a task as incomplete. |
+| `delete <number>` | Delete a task. |
+| `exit` | Save all tasks and close Yokohama. |
+
+Examples:
+
+```text
+todo buy milk
+deadline submit report /by 9/3/2026 2359
+event team meeting /from 9/10/2026 0900 /to 9/10/2026 1000
+list
+find report
+schedule 9/10/2026
+mark 1
+unmark 1
+delete 1
+exit
+```
+
 ### Add a task
 
 Use `todo` for a task without a date:
